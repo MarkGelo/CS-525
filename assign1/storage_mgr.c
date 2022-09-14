@@ -13,7 +13,6 @@ Not sure what this function is supposed to do
 */
 void initStorageManager (void){
     printf("Initialized Storage Manager");
-    return 0;
 }
 
 /*
@@ -27,7 +26,7 @@ RC createPageFile (char *fileName){
     FILE *file = fopen(fileName, "w+"); // create file
     
     char *p = malloc(PAGE_SIZE);
-    memset(p, "\0", PAGE_SIZE);
+    memset(p, '\0', PAGE_SIZE); // "\0" is wrong
     fwrite(p, 1, PAGE_SIZE, file); // ptr, size, nmemb, stream
     free(p);
     fclose(file);
@@ -39,7 +38,7 @@ Open existing page file, return RC_FILE_NOT_FOUND if doesn't exist
 fill file handle with info
 */
 RC openPageFile (char *fileName, SM_FileHandle *fHandle){
-    File *file = fopen(fileName, "r");
+    FILE *file = fopen(fileName, "r");
     if (file == NULL){
         return RC_FILE_NOT_FOUND;
     }
