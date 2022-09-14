@@ -58,6 +58,7 @@ testCreateOpenClose(void)
 }
 
 /* Try to create, open, and close a page file */
+/*
 void
 testSinglePageContent(void)
 {
@@ -98,3 +99,4 @@ testSinglePageContent(void)
   
   TEST_DONE();
 }
+*/
