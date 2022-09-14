@@ -50,13 +50,16 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     fseek(file, 0L, SEEK_END); // seek to end of file, get pos
     int size = ftell(file); // long int
     fHandle -> totalNumPages = size / PAGE_SIZE; // calc num of pages
-    printf("Size: %d", size);
-    printf("Total Num Pages: %d\n", fHandle -> totalNumPages); // checking if calculation is right
+    /*
+        Calculation of # pages should be correct cuz should always be in PAGE_SIZE blocks anyways. If don't need whole block, just fill with \0 to reach PAGE_SIZE? right?
+    */
+    //printf("Size: %d\n", size);
+    //printf("Total Num Pages: %d\n", fHandle -> totalNumPages); // checking if calculation is right
     rewind(file); // do i need to do this, since i saved the fp before doing the seek
 
     //fclose(file);
 
-    return RC_OK;
+    return RC_FILE_NOT_FOUND;
 }
 
 /*
