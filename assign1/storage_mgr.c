@@ -40,7 +40,7 @@ fill file handle with info
 RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     FILE *file = fopen(fileName, "r");
     if (file == NULL){
-        return RC_FILE_NOT_FOUND;
+        return RC_OK;
     }
 
     fHandle -> fileName = fileName;
