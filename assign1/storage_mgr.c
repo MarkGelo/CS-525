@@ -48,7 +48,7 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     fHandle -> mgmtInfo = file; // save pointer to file
 
     fseek(file, 0L, SEEK_END); // seek to end of file, get pos
-    size = ftell(file);
+    int size = ftell(file); // long int
     fHandle -> totalNumPages = size / PAGE_SIZE; // calc num of pages
     printf("Total Num Pages: %d", fHandle -> totalNumPages); // checking if calculation is right
     rewind(file); // do i need to do this, since i saved the fp before doing the seek
