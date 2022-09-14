@@ -12,7 +12,7 @@
 Not sure what this function is supposed to do
 */
 void initStorageManager (void){
-    printf("Initialized Storage Manager");
+    printf("Initialized Storage Manager\n");
 }
 
 /*
@@ -50,7 +50,8 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     fseek(file, 0L, SEEK_END); // seek to end of file, get pos
     int size = ftell(file); // long int
     fHandle -> totalNumPages = size / PAGE_SIZE; // calc num of pages
-    printf("Total Num Pages: %d", fHandle -> totalNumPages); // checking if calculation is right
+    print("Size: %d", size);
+    printf("Total Num Pages: %d\n", fHandle -> totalNumPages); // checking if calculation is right
     rewind(file); // do i need to do this, since i saved the fp before doing the seek
 
     //fclose(file);
