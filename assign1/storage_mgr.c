@@ -59,7 +59,7 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle){
 
     //fclose(file);
 
-    return RC_FILE_NOT_FOUND;
+    return RC_OK;
 }
 
 /*
