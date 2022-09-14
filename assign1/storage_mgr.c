@@ -52,7 +52,7 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     size = ftell(file);
     fHandle -> totalNumPages = size / PAGE_SIZE; // calc num of pages
     printf("Total Num Pages: %d", fHandle -> totalNumPages); // checking if calculation is right
-    rewind(file); // do i need to do this, since i saved the fp before doing the seek
+    //rewind(file); // do i need to do this, since i saved the fp before doing the seek
 
     //fclose(file);
 
@@ -68,7 +68,7 @@ RC closePageFile (SM_FileHandle *fHandle){
         return RC_FILE_NOT_FOUND;
     }
     fHandle = NULL;
-    
+
     return RC_OK;
 }
 
