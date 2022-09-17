@@ -155,13 +155,13 @@ RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
         //fwrite(memPage, 1, PAGE_SIZE, file);
         // have to go to correct pos, start of pageNum
         fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
-        fwrite(memPage, 1, PAGE_SIZE, file);
+        fwrite(memPage, sizeof(char), PAGE_SIZE / sizeof(char), file);
     }else{
         // have to go to correct pos, start of pageNum
         fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
-        fwrite(memPage, 1, PAGE_SIZE, file);
+        fwrite(memPage, sizeof(char), PAGE_SIZE / sizeof(char), file);
     }
-    fHandle -> curPagePos = pageNum; // read block from pos 0, so 0 -> 1, so now pointer starting at page 1. +1
+    fHandle -> curPagePos = pageNum + 1; // read block from pos 0, so 0 -> 1, so now pointer starting at page 1. +1
 
     return RC_OK;
 }
