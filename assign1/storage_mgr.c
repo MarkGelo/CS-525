@@ -144,26 +144,11 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 write block to page file according to pagenum, basically same as readblock but write
 */
 RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
-    // pageNum starts at 0
-    if (fHandle -> totalNumPages - 1 < pageNum){ // need to be false to cont ... total 1, pageNum 0 -> 0 < 0 FALSE CORRECT, total 1 pageNum 1 -> 0 < 1 TRUE ERROR
-        return RC_WRITE_FAILED;
-    }
+    ensureCapacity(fHandle->totalNumPages,fHandle);
+    int placement = fseek(fHandle->mgmtInfo, pageNum * PAGE_SIZE * sizeof(char), SEEK_SET); //find the correct page
 
-    // same thing as readblock but write
-    FILE *file = fHandle -> mgmtInfo;
-    if (fHandle -> curPagePos == pageNum){ // already in correct pos, ex. curpage 0 and pageNum 0
-        //fwrite(memPage, 1, PAGE_SIZE, file);
-        // have to go to correct pos, start of pageNum
-        fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
-        fwrite(memPage, sizeof(char), PAGE_SIZE / sizeof(char), file);
-        fHandle -> mgmtInfo = file;
-    }else{
-        // have to go to correct pos, start of pageNum
-        fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
-        fwrite(memPage, sizeof(char), PAGE_SIZE / sizeof(char), file);
-        fHandle -> mgmtInfo = file;
-    }
-    fHandle -> curPagePos = pageNum + 1; // read block from pos 0, so 0 -> 1, so now pointer starting at page 1. +1
+    int writtenSize = fwrite(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo); //write o the page
+    fHandle->curPagePos = pageNum; //update the current page information to reflect new page after write
 
     return RC_OK;
 }
