@@ -200,7 +200,7 @@ if file has less pages than specified, increase
 RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
     if (fHandle -> totalNumPages < numberOfPages){
         int i;
-        for (i = 0; i < numberOfPages - fhandle -> totalNumPages; i++){
+        for (i = 0; i < numberOfPages - fHandle -> totalNumPages; i++){
             appendEmptyBlock(fHandle);
         }
     }
