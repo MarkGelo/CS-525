@@ -179,14 +179,17 @@ RC appendEmptyBlock (SM_FileHandle *fHandle){
         memset(p, '\0', PAGE_SIZE);
         fwrite(p, 1, PAGE_SIZE, file);
         free(p);
+        fHandle -> totalNumPages += 1;
+        fHandle -> curPagePos = curBlock + 1; // writes 1, so pointer is +1 pos
     }else{ // seek to end
         fseek(file, 0L, SEEK_END);
         char *p = malloc(PAGE_SIZE);
         memset(p, '\0', PAGE_SIZE);
         fwrite(p, 1, PAGE_SIZE, file);
         free(p);
+        fHandle -> totalNumPages += 1;
+        fHandle -> curPagePos = fHandle -> totalNumPages; // this should be right
     }
-    fHandle -> totalNumPages += 1;
 
     return RC_OK;
 }
