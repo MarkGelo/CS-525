@@ -26,7 +26,7 @@ main (void)
   initStorageManager();
 
   testCreateOpenClose();
-  //testSinglePageContent();
+  testSinglePageContent();
 
   return 0;
 }
@@ -58,7 +58,6 @@ testCreateOpenClose(void)
 }
 
 /* Try to create, open, and close a page file */
-/*
 void
 testSinglePageContent(void)
 {
@@ -99,4 +98,3 @@ testSinglePageContent(void)
   
   TEST_DONE();
 }
-*/
