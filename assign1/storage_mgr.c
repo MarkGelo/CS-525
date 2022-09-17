@@ -152,6 +152,9 @@ RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     // same thing as readblock but write
     FILE *file = fHandle -> mgmtInfo;
     if (fHandle -> curPagePos == pageNum){ // already in correct pos, ex. curpage 0 and pageNum 0
+        //fwrite(memPage, 1, PAGE_SIZE, file);
+        // have to go to correct pos, start of pageNum
+        fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
         fwrite(memPage, 1, PAGE_SIZE, file);
     }else{
         // have to go to correct pos, start of pageNum
