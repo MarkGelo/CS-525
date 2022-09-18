@@ -20,7 +20,7 @@ Create new page file, one page initial file size, filled with '\0' bytes
 */
 RC createPageFile (char *fileName){
     if (access(fileName, F_OK) == 0){ // file exists already
-        return 1; // dont want to del an already existing file
+        return RC_WRITE_FAILED; // dont want to del an already existing file ... not sure if its fine to create new RC defs
     }
 
     FILE *file = fopen(fileName, "w+"); // create file
@@ -65,22 +65,23 @@ close page file -- close, should i also remove fhandle?
 */
 RC closePageFile (SM_FileHandle *fHandle){
     FILE *file = fHandle -> mgmtInfo;
-    if (fclose(file) != 0){
-        return RC_FILE_NOT_FOUND;
+    if (fclose(file) == 0){
+        fHandle = NULL; // update fHandle, file handle represents an open page file, so closing should basically delete the handle
+        return RC_OK;
     }
-    fHandle = NULL;
 
-    return RC_OK;
+    return RC_FILE_NOT_FOUND;
 }
 
 /*
+Assumes, the file handles is already closed hmmm. maybe should add checks 
 When doing destroyPageFile, do closePageFile first, so it closes and also removes fhandle
 */
 RC destroyPageFile (char *fileName){
-    if (remove(fileName) != 0){
-        return RC_FILE_NOT_FOUND;
+    if (remove(fileName) == 0){
+        return RC_OK;
     }
-    return RC_OK;
+    return RC_FILE_NOT_FOUND; // couldnt delete file -- maybe should create new error code
 }
 
 // Read and Write Methods
@@ -92,7 +93,7 @@ Page starts at 0
 */
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     // pageNum starts at 0
-    if (fHandle -> totalNumPages - 1 < pageNum){ // need to be false to cont ... total 1, pageNum 0 -> 0 < 0 FALSE CORRECT, total 1 pageNum 1 -> 0 < 1 TRUE ERROR
+    if (pageNum < 0 || fHandle -> totalNumPages - 1 < pageNum){ // need to be false to cont ... total 1, pageNum 0 -> 0 < 0 FALSE CORRECT, total 1 pageNum 1 -> 0 < 1 TRUE ERROR
         return RC_READ_NON_EXISTING_PAGE;
     }
 
@@ -142,10 +143,12 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 
 /*
 write block to page file according to pagenum, basically same as readblock but write
+not increasing the number of pages, i assume. so pageNum has to be less than totalnumpages -- TODO CHECK THIS
+"writes a page to disk", so the page would be default page size, so no need to make sure or adjust things if the page to write is not 4096
 */
 RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     // pageNum starts at 0
-    if (fHandle -> totalNumPages - 1 < pageNum){ // need to be false to cont ... total 1, pageNum 0 -> 0 < 0 FALSE CORRECT, total 1 pageNum 1 -> 0 < 1 TRUE ERROR
+    if (pageNum < 0 || fHandle -> totalNumPages - 1 < pageNum){ // need to be false to cont ... total 1, pageNum 0 -> 0 < 0 FALSE CORRECT, total 1 pageNum 1 -> 0 < 1 TRUE ERROR
         return RC_WRITE_FAILED;
     }
 
@@ -153,12 +156,11 @@ RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     FILE *file = fHandle -> mgmtInfo;
     if (fHandle -> curPagePos == pageNum){ // already in correct pos, ex. curpage 0 and pageNum 0
         //fwrite(memPage, 1, PAGE_SIZE, file);
-        // have to go to correct pos, start of pageNum
-        fwrite(memPage, sizeof(char), PAGE_SIZE, file);
+        fwrite(memPage, 1, PAGE_SIZE, file);
     }else{
         // have to go to correct pos, start of pageNum
         fseek(file, pageNum * PAGE_SIZE, SEEK_SET);
-        fwrite(memPage, sizeof(char), PAGE_SIZE / sizeof(char), file);
+        fwrite(memPage, 1, PAGE_SIZE, file);
     }
     fHandle -> curPagePos = pageNum + 1; // read block from pos 0, so 0 -> 1, so now pointer starting at page 1. +1
 
@@ -173,37 +175,37 @@ RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 append an empty block at end of file - similar to createpage, just gotta make sure to do it at the end of file
 */
 RC appendEmptyBlock (SM_FileHandle *fHandle){
-    FILE *file = fHandle -> mgmtInfo; // create file
+    FILE *file = fHandle -> mgmtInfo;
     int curBlock = getBlockPos(fHandle);
     
+    char *p = malloc(PAGE_SIZE);
+    memset(p, '\0', PAGE_SIZE);
     if (curBlock == fHandle -> totalNumPages){ // already at end -- 1 total page, beginning is curBlock 0, curBlock 1 means at end, so
-        char *p = malloc(PAGE_SIZE);
-        memset(p, '\0', PAGE_SIZE);
         fwrite(p, 1, PAGE_SIZE, file);
         free(p);
         fHandle -> totalNumPages += 1;
         fHandle -> curPagePos = curBlock + 1; // writes 1, so pointer is +1 pos
-    }else{ // seek to end
+    }else{ // seek to end then write
         fseek(file, 0L, SEEK_END);
-        char *p = malloc(PAGE_SIZE);
-        memset(p, '\0', PAGE_SIZE);
         fwrite(p, 1, PAGE_SIZE, file);
-        free(p);
         fHandle -> totalNumPages += 1;
         fHandle -> curPagePos = fHandle -> totalNumPages; // this should be right
     }
+    free(p);
 
     return RC_OK;
 }
 
 /*
-if file has less pages than specified, increase
+if file has less pages than specified, increase using appendEmptyBlock
 */
 RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
     if (fHandle -> totalNumPages < numberOfPages){
         int i;
         for (i = 0; i < numberOfPages - fHandle -> totalNumPages; i++){
-            appendEmptyBlock(fHandle);
+            if (appendEmptyBlock(fHandle) != RC_OK){ // if appendEmptyBlock has any error, this makes sure to return an error
+                return RC_WRITE_FAILED;
+            }
         }
     }
 

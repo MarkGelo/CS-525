@@ -31,3 +31,6 @@ Not sure why "Hint: You should reserve some space in the beginning of a file to 
 https://stackoverflow.com/questions/21327791/creating-a-file-with-with-size-one-page-and-fill-it-with-0-bytes
 https://stackoverflow.com/questions/230062/whats-the-best-way-to-check-if-a-file-exists-in-c
 https://stackoverflow.com/questions/238603/how-can-i-get-a-files-size-in-c
+https://www.geeksforgeeks.org/c-program-delete-file/
+
+use "xxd -b file" to view bin files
