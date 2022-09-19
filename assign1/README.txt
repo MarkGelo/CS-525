@@ -1,4 +1,10 @@
+To run, do "make"
+Then "./test_assign1"
+Can also do "make clean" to have a cleanslate
 
+For this assignment, I mostly just followed the methods and what they're supposed to do, not really diverging from it. I added my own tests, that seems more exhaustive, making sure most, if not all, methods are correct and double checking the file handle information after the methods. My own test runs after the given tests.
+An important thing, is that I didn't follow the hint of reserving some space in the beginning of a file to store info such as total number of pages. Since number of pages is already going to be stored in the file handle, i don't see the reason why it also needs to be in the file. It may be faster to just read it from file than calculating so, this may come bite me in the ass in later assignments. It should be pretty easy to implement having some space in the beggining of the file for misc info tho. 
+I also checked for memory leaks and adjusted the storage manager as well as the tests to make sure there were none. One thing to note, to make sure there is no memory leak, make sure to close all page files. Just destroying page files isn't enough, you also have to close all page files.
 
 File Related Methods:
     initStorageManager: Not really sure what this function is supposed to do. Just made it say "Initialized Storage Manager"
