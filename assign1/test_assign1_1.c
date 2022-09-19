@@ -16,6 +16,7 @@ char *testName;
 /* prototypes for test functions */
 static void testCreateOpenClose(void);
 static void testSinglePageContent(void);
+static void myOwnTest(void);
 
 /* main function running all tests */
 int
