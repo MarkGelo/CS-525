@@ -57,9 +57,9 @@ void myOwnTest(void){
   ASSERT_TRUE((writeBlock (1, &fh, ph) != RC_OK), "fails due to trying to write block when theres not enough space in page");
 
   TEST_CHECK(ensureCapacity(3, &fh));
-  printf("Total Num Pages: %d\n", fh.totalNumPages);
+  //printf("Total Num Pages: %d\n", fh.totalNumPages);
   ASSERT_TRUE((fh.totalNumPages == 3), "expect 3 page in file after ensuring capacity");
-  printf("Cur Page Pos: %d\n", fh.curPagePos);
+  //printf("Cur Page Pos: %d\n", fh.curPagePos);
   ASSERT_TRUE((fh.curPagePos == 3), "after ensure capacity position should be at end, so 3");
   TEST_CHECK(writeBlock (1, &fh, ph));
   TEST_CHECK(writeBlock (2, &fh, ph2));
@@ -67,9 +67,9 @@ void myOwnTest(void){
   TEST_CHECK(ensureCapacity(4, &fh2));
   TEST_CHECK(writeBlock (0, &fh2, ph));
   TEST_CHECK(writeBlock (3, &fh2, ph2));
-  printf("Total Num Pages: %d\n", fh2.totalNumPages);
+  //printf("Total Num Pages: %d\n", fh2.totalNumPages);
   ASSERT_TRUE((fh2.curPagePos == 4), "after writing at block 3, cur page should be at 4");
-  printf("Current Block Pos: %d\n", getBlockPos(&fh2));
+  //printf("Current Block Pos: %d\n", getBlockPos(&fh2));
   ASSERT_TRUE((getBlockPos(&fh2) == 4), "block pos should be at 4");
   ASSERT_TRUE((writeCurrentBlock (&fh2, ph) != RC_OK), "writing at current block, 4, should be error, since only 4 pages");
 
