@@ -39,10 +39,12 @@ void myOwnTest(void){
   SM_FileHandle fh;
   SM_FileHandle fh2;
   SM_PageHandle ph;
+  ph = (SM_PageHandle) malloc(PAGE_SIZE);
   int i;
   for (i=0; i < PAGE_SIZE; i++)
     ph[i] = (i % 11) + '0';
   SM_PageHandle ph2;
+  ph2 = (SM_PageHandle) malloc(PAGE_SIZE);
   for (i=0; i < PAGE_SIZE; i++)
     ph2[i] = (i % 22) + '0';
 
