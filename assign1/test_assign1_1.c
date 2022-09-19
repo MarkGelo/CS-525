@@ -58,6 +58,7 @@ void myOwnTest(void){
   ASSERT_TRUE((writeBlock (1, &fh, ph) != RC_OK), "fails due to trying to write block when theres not enough space in page");
   printf("\nhere1\n");
 
+  printf("Total Num Pages: %d\n", fh.totalNumPages);
   TEST_CHECK(ensureCapacity(3, &fh));
   printf("Total Num Pages: %d\n", fh.totalNumPages);
   printf("Cur Page Pos: %d\n", fh.curPagePos);

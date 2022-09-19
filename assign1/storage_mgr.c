@@ -182,7 +182,6 @@ RC appendEmptyBlock (SM_FileHandle *fHandle){
     memset(p, '\0', PAGE_SIZE);
     if (curBlock == fHandle -> totalNumPages){ // already at end -- 1 total page, beginning is curBlock 0, curBlock 1 means at end, so
         fwrite(p, 1, PAGE_SIZE, file);
-        free(p);
         fHandle -> totalNumPages += 1;
         fHandle -> curPagePos = curBlock + 1; // writes 1, so pointer is +1 pos
     }else{ // seek to end then write
