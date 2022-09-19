@@ -79,10 +79,13 @@ void myOwnTest(void){
   SM_PageHandle ph3;
   ph3 = (SM_PageHandle) malloc(PAGE_SIZE);
 
-  TEST_CHECK(readPreviousBlock (&fh2, ph3)); // should be equal to ph2
+  TEST_CHECK(readPreviousBlock(&fh2, ph3)); // should be equal to ph2
   for (i=0; i < PAGE_SIZE; i++)
-    ASSERT_TRUE((ph[i] == ph2[i]), "character in page read from disk is the one we expected.");
+    ASSERT_TRUE((ph3[i] == ph2[i]), "character in page read from disk is the one we expected.");
   ASSERT_TRUE((getBlockPos(&fh2) == 4), "block pos should be at 4");
+  TEST_CHECK(readBlock(1, &fh, ph3)); // should be equal to ph
+  for (i=0; i < PAGE_SIZE; i++)
+    ASSERT_TRUE((ph3[i] == ph[i]), "character in page read from disk is the one we expected.");
   printf("\nhere4\n");
 
   TEST_CHECK(closePageFile(&fh));
