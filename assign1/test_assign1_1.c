@@ -38,12 +38,12 @@ void myOwnTest(void){
   SM_FileHandle fh;
   SM_FileHandle fh2;
   SM_PageHandle ph;
+  int i;
   for (i=0; i < PAGE_SIZE; i++)
     ph[i] = (i % 11) + '0';
   SM_PageHandle ph2;
   for (i=0; i < PAGE_SIZE; i++)
     ph2[i] = (i % 22) + '0';
-  int i;
 
   TEST_CHECK(createPageFile ('myowntest.bin'));
   TEST_CHECK(createPageFile ('myowntest2.bin'));
