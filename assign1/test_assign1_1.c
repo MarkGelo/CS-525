@@ -27,10 +27,60 @@ main (void)
 
   testCreateOpenClose();
   testSinglePageContent();
+  myOwnTest();
 
   return 0;
 }
 
+void myOwnTest(void){
+  printf("\n------------------my own test-------------------\n");
+
+  SM_FileHandle fh;
+  SM_FileHandle fh2;
+  SM_PageHandle ph;
+  for (i=0; i < PAGE_SIZE; i++)
+    ph[i] = (i % 11) + '0';
+  SM_PageHandle ph2;
+  for (i=0; i < PAGE_SIZE; i++)
+    ph2[i] = (i % 22) + '0';
+  int i;
+
+  TEST_CHECK(createPageFile ('myowntest.bin'));
+  TEST_CHECK(createPageFile ('myowntest2.bin'));
+  TEST_CHECK(openPageFile ('myowntest.bin', &fh));
+  TEST_CHECK(openPageFile ('myowntest2.bin', &fh2));
+
+  ASSERT_TRUE((createPageFile ('myowntest.bin') != RC_OK), "fails due to trying to create page file when theres already a file with same name");
+  ASSERT_TRUE((writeBlock (1, &fh, ph) != RC_OK), "fails due to trying to write block when theres not enough space in page");
+
+  TEST_CHECK(ensureCapacity(3, &fh));
+  ASSERT_TRUE((fh.totalNumPages == 3), "expect 3 page in file after ensuring capacity");
+  ASSERT_TRUE((fh.curPagePos == 3), "after ensure capacity position should be at end, so 3");
+  TEST_CHECK(writeBlock (1, &fh, ph));
+  TEST_CHECK(writeBlock (2, &fh, ph2));
+
+  TEST_CHECK(ensureCapacity(4, &fh2));
+  TEST_CHECK(writeBlock (0, &fh2, ph));
+  TEST_CHECK(writeBlock (3, &fh2, ph2));
+  ASSERT_TRUE((fh2.curPagePos == 4), "after writing at block 3, cur page should be at 4");
+  ASSERT_TRUE((getBlockPos(&fh2) == 4), "block pos should be at 4");
+  ASSERT_TRUE((writeCurrentBlock (&fh2, ph) != RC_OK), "writing at current block, 4, should be error, since only 4 pages");
+
+  SM_PageHandle ph3;
+  ph3 = (SM_PageHandle) malloc(PAGE_SIZE);
+
+  TEST_CHECK(readPreviousBlock (&fh2, ph3)); // should be equal to ph2
+  for (i=0; i < PAGE_SIZE; i++)
+    ASSERT_TRUE((ph[i] == ph2[i]), "character in page read from disk is the one we expected.");
+  ASSERT_TRUE((getBlockPos(&fh2) == 4), "block pos should be at 4");
+
+  TEST_CHECK(closePageFile(&fh));
+  TEST_CHECK(closePageFile(&fh2));
+  TEST_CHECK(destroyPageFile('myowntest.bin'));
+  TEST_CHECK(destroyPageFile('myowntest2.bin'));
+
+  TEST_DONE();
+}
 
 /* check a return code. If it is not RC_OK then output a message, error description, and exit */
 /* Try to create, open, and close a page file */
