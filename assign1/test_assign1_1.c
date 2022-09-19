@@ -46,12 +46,12 @@ void myOwnTest(void){
   for (i=0; i < PAGE_SIZE; i++)
     ph2[i] = (i % 22) + '0';
 
-  TEST_CHECK(createPageFile ('myowntest.bin'));
-  TEST_CHECK(createPageFile ('myowntest2.bin'));
-  TEST_CHECK(openPageFile ('myowntest.bin', &fh));
-  TEST_CHECK(openPageFile ('myowntest2.bin', &fh2));
+  TEST_CHECK(createPageFile ("myowntest.bin"));
+  TEST_CHECK(createPageFile ("myowntest2.bin"));
+  TEST_CHECK(openPageFile ("myowntest.bin", &fh));
+  TEST_CHECK(openPageFile ("myowntest2.bin", &fh2));
 
-  ASSERT_TRUE((createPageFile ('myowntest.bin') != RC_OK), "fails due to trying to create page file when theres already a file with same name");
+  ASSERT_TRUE((createPageFile ("myowntest.bin") != RC_OK), "fails due to trying to create page file when theres already a file with same name");
   ASSERT_TRUE((writeBlock (1, &fh, ph) != RC_OK), "fails due to trying to write block when theres not enough space in page");
 
   TEST_CHECK(ensureCapacity(3, &fh));
@@ -77,8 +77,8 @@ void myOwnTest(void){
 
   TEST_CHECK(closePageFile(&fh));
   TEST_CHECK(closePageFile(&fh2));
-  TEST_CHECK(destroyPageFile('myowntest.bin'));
-  TEST_CHECK(destroyPageFile('myowntest2.bin'));
+  TEST_CHECK(destroyPageFile("myowntest.bin"));
+  TEST_CHECK(destroyPageFile("myowntest2.bin"));
 
   TEST_DONE();
 }
