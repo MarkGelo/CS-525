@@ -94,6 +94,9 @@ void myOwnTest(void){
   TEST_CHECK(destroyPageFile("myowntest2.bin"));
   //printf("\nhere5\n");
 
+  free(ph);
+  free(ph2);
+  free(ph3);
   TEST_DONE();
 }
 
@@ -161,5 +164,6 @@ testSinglePageContent(void)
   // destroy new page file
   TEST_CHECK(destroyPageFile (TESTPF));  
   
+  free(ph);
   TEST_DONE();
 }
