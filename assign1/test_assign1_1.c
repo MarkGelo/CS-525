@@ -59,6 +59,8 @@ void myOwnTest(void){
   printf("\nhere1\n");
 
   TEST_CHECK(ensureCapacity(3, &fh));
+  printf("Total Num Pages: %d\n", fh.totalNumPages);
+  printf("Cur Page Pos: %d\n", fh.curPagePos);
   ASSERT_TRUE((fh.totalNumPages == 3), "expect 3 page in file after ensuring capacity");
   ASSERT_TRUE((fh.curPagePos == 3), "after ensure capacity position should be at end, so 3");
   TEST_CHECK(writeBlock (1, &fh, ph));
