@@ -124,7 +124,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     if (access(pageFileName, F_OK) == 0) {
         // file exists
         initStorageManager();
-        bm->pageFile = pageFileName;
+        bm->pageFile = (char *) pageFileName;
         bm->numPages = numPages;
         bm->mgmtData = createFrames(numPages);
         bm->strategy = strategy;
