@@ -42,13 +42,16 @@ typedef struct BM_PageFrame {
     int framePos;
     bool dirtyFlag;
     int fixCount;
-    time_t lastAccess;
+    time_t timeUsed; // LRU
 } BM_PageFrame;
 
 typedef struct BM_PageTable {
     BM_PageFrame **frames;
-    int lastPinnedPosition;
-    int actualUsedFrames;
+    int lastPinnedPos; // FIFO
+    int numFramesUsed;
+	PageNumber *frameContents; //array of PageNumbers
+	bool *dirtyFlags; // array for stats
+	int *fixCounts; // array
 } BM_PageTable;
 
 // convenience macros
