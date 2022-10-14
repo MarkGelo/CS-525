@@ -6,7 +6,8 @@
 
 // Include bool DT
 #include "dt.h"
-#include "storage_mgr.h"
+
+#include <time.h>
 
 // Replacement Strategies
 typedef enum ReplacementStrategy {
@@ -22,35 +23,33 @@ typedef int PageNumber;
 #define NO_PAGE -1
 
 typedef struct BM_BufferPool {
-	char *pageFile;
+	const char *pageFile;
 	int numPages;
 	ReplacementStrategy strategy;
 	void *mgmtData; // use this one to store the bookkeeping info your buffer
+    int numberOfWriteIO;
+    int numberOfReadIO;
 	// manager needs for a buffer pool
-	int numWriteIO;
-	int numReadIO;
 } BM_BufferPool;
 
-typedef struct BM_PageHandle { // data field points to the area in memory storing the content of page. Usually be a page frame from buffer pool
+typedef struct BM_PageHandle {
 	PageNumber pageNum;
 	char *data;
 } BM_PageHandle;
 
-typedef struct BM_PageFrame{
-	PageNumber pageNum;
-	bool dirtyFlag;
-	int pinCounter;
-	char *data;
-} BM_PageFrame;
+typedef struct BM_FrameHandle {
+    BM_PageHandle * page; //the page in this frame
+    int positionInFramesArray;
+    bool isDirty;
+    int fixCount;
+    time_t lastAccess;
+} BM_FrameHandle;
 
-typedef struct BM_PageTable{
-	BM_PageFrame *pageFrames;
-	SM_FileHandle fh;
-	int numFrames; // to keep track of number of frames in the table
-	PageNumber *frameContents; // array of PageNumbers ... stats func
-	bool *dirtyFlags; // array
-	int *fixCounts; // array
-} BM_PageTable;
+typedef struct BM_FramesHandle {
+    BM_FrameHandle ** frames;
+    int lastPinnedPosition;
+    int actualUsedFrames;
+} BM_FramesHandle;
 
 // convenience macros
 #define MAKE_POOL()					\
