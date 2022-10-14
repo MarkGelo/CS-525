@@ -23,12 +23,12 @@ typedef int PageNumber;
 #define NO_PAGE -1
 
 typedef struct BM_BufferPool {
-	const char *pageFile;
+	char *pageFile;
 	int numPages;
 	ReplacementStrategy strategy;
 	void *mgmtData; // use this one to store the bookkeeping info your buffer
-    int numberOfWriteIO;
-    int numberOfReadIO;
+    int numWriteIO;
+    int numReadIO;
 	// manager needs for a buffer pool
 } BM_BufferPool;
 
@@ -37,19 +37,19 @@ typedef struct BM_PageHandle {
 	char *data;
 } BM_PageHandle;
 
-typedef struct BM_FrameHandle {
-    BM_PageHandle * page; //the page in this frame
-    int positionInFramesArray;
-    bool isDirty;
+typedef struct BM_PageFrame {
+    BM_PageHandle * page;
+    int framePos;
+    bool dirtyFlag;
     int fixCount;
     time_t lastAccess;
-} BM_FrameHandle;
+} BM_PageFrame;
 
-typedef struct BM_FramesHandle {
-    BM_FrameHandle ** frames;
+typedef struct BM_PageTable {
+    BM_PageFrame **frames;
     int lastPinnedPosition;
     int actualUsedFrames;
-} BM_FramesHandle;
+} BM_PageTable;
 
 // convenience macros
 #define MAKE_POOL()					\

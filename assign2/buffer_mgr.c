@@ -67,7 +67,11 @@ RC forceFlushPool(BM_BufferPool *const bm){
     BM_PageTable *pageTable = bm -> mgmtData;
     BM_PageFrame *pageFrames = pageTable -> pageFrames;
     for(int i = 0; i < bm -> numPages; i ++){
-        if(pageFrames[i].page != NO_PAGE && pageFrames[i].dirty == true){
+        if(pageFrames[i].page != NO_PAGE && pageFrames[i].dirtyFlag){
+            //write back
+            writeBlock(pageFrames)
+            pageFrames[i].dirtyFlag = false;
+            pageTable -> dirtyFlags[i] = false; // update dirty flags array
         }
     }
 }

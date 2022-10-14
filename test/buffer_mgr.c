@@ -10,9 +10,9 @@
  * Create an empty frame container with numberOfFrames frames
  * The result need to be freed before the end of the program
  */
-BM_FramesHandle *createFrames(int numberOfFrames) {
-    BM_FramesHandle *frames = malloc(sizeof(BM_FramesHandle));
-    frames->frames = malloc(sizeof(BM_FrameHandle *) * numberOfFrames);
+BM_PageTable *createFrames(int numberOfFrames) {
+    BM_PageTable *frames = malloc(sizeof(BM_PageTable));
+    frames->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
     for (int i = 0; i < numberOfFrames; i++) {
         frames->frames[i] = NULL;
     }
@@ -27,8 +27,8 @@ BM_FramesHandle *createFrames(int numberOfFrames) {
  * If not found returns NULL
  * This could be improved by using a hash table.
  */
-BM_FrameHandle *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum) {
-    BM_FramesHandle *framesHandle = (BM_FramesHandle *) bm->mgmtData;
+BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum) {
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
         if (framesHandle->frames[i] != NULL) {
             if (framesHandle->frames[i]->page->pageNum == pageNum) {
@@ -36,7 +36,7 @@ BM_FrameHandle *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageN
             }
         }
     }
-    return (BM_FrameHandle *) NULL;
+    return (BM_PageFrame *) NULL;
 }
 
 /*
@@ -45,24 +45,24 @@ BM_FrameHandle *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageN
  * The strategy used to find a place is FIFO
  */
 RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh) {
-    BM_FramesHandle *framesHandle = (BM_FramesHandle *) bm->mgmtData;
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
     for (int i = 1; i < bm->numPages; i++) {
         int position = (framesHandle->lastPinnedPosition + i) % bm->numPages;
-        BM_FrameHandle *frame = framesHandle->frames[position];
+        BM_PageFrame *frame = framesHandle->frames[position];
         /* The frame can be evicted */
         if (frame->fixCount == 0) {
-            if (frame->isDirty == TRUE) {
+            if (frame->dirtyFlag == TRUE) {
                 if (writeBlock(frame->page->pageNum, &fh, frame->page->data) != RC_OK)
                     return RC_WRITE_FAILED;
-                bm->numberOfWriteIO++;
+                bm->numWriteIO++;
             }
             free(frame->page->data);
             frame->page->data = page->data;
             frame->page->pageNum = page->pageNum;
             frame->fixCount = 1;
-            frame->isDirty = 0;
+            frame->dirtyFlag = 0;
             time(&frame->lastAccess);
-            frame->positionInFramesArray = position;
+            frame->framePos = position;
             framesHandle->lastPinnedPosition = position;
             closePageFile(&fh);
             return RC_OK;
@@ -78,10 +78,10 @@ RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHa
  * The strategy used to find a place is LRU
  */
 RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh) {
-    BM_FramesHandle *framesHandle = (BM_FramesHandle *) bm->mgmtData;
-    BM_FrameHandle *leastRecentlyUsedFrame = framesHandle->frames[0];
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    BM_PageFrame *leastRecentlyUsedFrame = framesHandle->frames[0];
     for (int i =0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = framesHandle->frames[i];
+        BM_PageFrame *frame = framesHandle->frames[i];
         /* Searching the least recently used frame from the one that can be evicted (i.e fixCount = 0) */
         if (frame->fixCount == 0) {
             if (difftime(leastRecentlyUsedFrame->lastAccess, frame->lastAccess) >= 0) {
@@ -96,10 +96,10 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
         return RC_WRITE_FAILED;
     }
 
-    if (leastRecentlyUsedFrame->isDirty == TRUE) {
+    if (leastRecentlyUsedFrame->dirtyFlag == TRUE) {
         if (writeBlock(leastRecentlyUsedFrame->page->pageNum, &fh, leastRecentlyUsedFrame->page->data) != RC_OK)
             return RC_WRITE_FAILED;
-        bm->numberOfWriteIO++;
+        bm->numWriteIO++;
     }
     struct timeval tv;
     free(leastRecentlyUsedFrame->page->data);
@@ -107,11 +107,11 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     leastRecentlyUsedFrame->page->data = page->data;
     leastRecentlyUsedFrame->page->pageNum = page->pageNum;
     leastRecentlyUsedFrame->fixCount = 1;
-    leastRecentlyUsedFrame->isDirty = 0;
+    leastRecentlyUsedFrame->dirtyFlag = 0;
     gettimeofday(&tv, NULL);
     leastRecentlyUsedFrame->lastAccess = tv.tv_usec;
 
-    framesHandle->lastPinnedPosition = leastRecentlyUsedFrame->positionInFramesArray;
+    framesHandle->lastPinnedPosition = leastRecentlyUsedFrame->framePos;
     closePageFile(&fh);
     return RC_OK;
 }
@@ -128,8 +128,8 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
         bm->numPages = numPages;
         bm->mgmtData = createFrames(numPages);
         bm->strategy = strategy;
-        bm->numberOfReadIO = 0;
-        bm->numberOfWriteIO = 0;
+        bm->numReadIO = 0;
+        bm->numWriteIO = 0;
 
         return RC_OK;
     }
@@ -142,15 +142,15 @@ RC shutdownBufferPool(BM_BufferPool *const bm) {
     if (openPageFile(filename, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
-    BM_FramesHandle *frames = bm->mgmtData;
+    BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = frames->frames[i];
+        BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL) {
             if (frame->fixCount != 0) {
                 //CHANGE RETURN CODE
                 return RC_WRITE_FAILED;
             }
-            if (frame->isDirty == TRUE) {
+            if (frame->dirtyFlag == TRUE) {
                 writeBlock(frame->page->pageNum, &fh, frame->page->data);
             }
             free(frame->page->data);
@@ -170,14 +170,14 @@ RC forceFlushPool(BM_BufferPool *const bm) {
     if (openPageFile(filename, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
-    BM_FramesHandle *frames = bm->mgmtData;
+    BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = frames->frames[i];
+        BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL) {
-            if (frame->isDirty == TRUE) {
+            if (frame->dirtyFlag == TRUE) {
                 writeBlock(frame->page->pageNum, &fh, frame->page->data);
-                frame->isDirty = FALSE;
-                bm->numberOfWriteIO++;
+                frame->dirtyFlag = FALSE;
+                bm->numWriteIO++;
             }
         }
     }
@@ -187,9 +187,9 @@ RC forceFlushPool(BM_BufferPool *const bm) {
 
 // Buffer Manager Interface Access Pages
 RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_FrameHandle *foundFrame = findFrameNumberN(bm, page->pageNum);
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
     if (foundFrame != NULL) {
-        foundFrame->isDirty = TRUE;
+        foundFrame->dirtyFlag = TRUE;
         return RC_OK;
     }
 
@@ -198,7 +198,7 @@ RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page) {
 }
 
 RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_FrameHandle *foundFrame = findFrameNumberN(bm, page->pageNum);
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
     if (foundFrame != NULL) {
         foundFrame->fixCount--;
         return RC_OK;
@@ -209,7 +209,7 @@ RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
 }
 
 RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_FrameHandle *foundFrame = findFrameNumberN(bm, page->pageNum);
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
     if (foundFrame != NULL) {
 
         char *filename = (char *) bm->pageFile;
@@ -221,8 +221,8 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
         if (writeBlock(page->pageNum, &fh, foundFrame->page->data) != RC_OK) {
             return RC_WRITE_FAILED;
         }
-        bm->numberOfWriteIO++;
-        foundFrame->isDirty = 0;
+        bm->numWriteIO++;
+        foundFrame->dirtyFlag = 0;
         closePageFile(&fh);
         return RC_OK;
     }
@@ -234,8 +234,8 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
 RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
            const PageNumber pageNum) {
 
-    BM_FramesHandle *framesHandle = (BM_FramesHandle *) bm->mgmtData;
-    BM_FrameHandle *foundFrame = findFrameNumberN(bm, pageNum);
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, pageNum);
     struct timeval tv;
 
     /* We found the page in the buffer */
@@ -245,7 +245,7 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
         foundFrame->fixCount++;
         gettimeofday(&tv, NULL);
         foundFrame->lastAccess = tv.tv_usec;
-        framesHandle->lastPinnedPosition = foundFrame->positionInFramesArray;
+        framesHandle->lastPinnedPosition = foundFrame->framePos;
         return RC_OK;
     }
 
@@ -266,7 +266,7 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
         closePageFile(&fh);
         return read;
     }
-    bm->numberOfReadIO++;
+    bm->numReadIO++;
 
     page->pageNum = pageNum;
 
@@ -274,13 +274,13 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
     if (framesHandle->actualUsedFrames < bm->numPages) {
         int availablePosition = framesHandle->lastPinnedPosition + 1;
 
-        BM_FrameHandle *frame = malloc(sizeof(BM_FrameHandle));
+        BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
         frame->page = malloc(sizeof(BM_PageHandle));
 
         frame->page->data = page->data;
         frame->fixCount = 1;
-        frame->isDirty = FALSE;
-        frame->positionInFramesArray = availablePosition;
+        frame->dirtyFlag = FALSE;
+        frame->framePos = availablePosition;
         frame->page->pageNum = pageNum;
         gettimeofday(&tv, NULL);
         frame->lastAccess = tv.tv_usec;
@@ -321,10 +321,10 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
 
 /* Results need to be freed after use */
 PageNumber *getFrameContents(BM_BufferPool *const bm) {
-    BM_FramesHandle *frames = bm->mgmtData;
+    BM_PageTable *frames = bm->mgmtData;
     PageNumber *arrayOfPageNumber = malloc(sizeof(PageNumber) * bm->numPages);
     for (int i = 0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = frames->frames[i];
+        BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL)
             arrayOfPageNumber[i] = frame->page->pageNum;
         else
@@ -335,11 +335,11 @@ PageNumber *getFrameContents(BM_BufferPool *const bm) {
 /* Results need to be freed after use */
 bool *getDirtyFlags(BM_BufferPool *const bm) {
     bool *array = malloc(sizeof(bool) * bm->numPages);
-    BM_FramesHandle *frames = bm->mgmtData;
+    BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = frames->frames[i];
+        BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL) {
-            array[i] = frame->isDirty;
+            array[i] = frame->dirtyFlag;
         } else
             array[i] = FALSE;
     }
@@ -348,9 +348,9 @@ bool *getDirtyFlags(BM_BufferPool *const bm) {
 /* Results need to be freed after use */
 int *getFixCounts(BM_BufferPool *const bm) {
     int *array = malloc(sizeof(int) * bm->numPages);
-    BM_FramesHandle *frames = bm->mgmtData;
+    BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
-        BM_FrameHandle *frame = frames->frames[i];
+        BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL) {
             array[i] = frame->fixCount;
         } else
@@ -360,9 +360,9 @@ int *getFixCounts(BM_BufferPool *const bm) {
 }
 
 int getNumReadIO(BM_BufferPool *const bm) {
-    return bm->numberOfReadIO;
+    return bm->numReadIO;
 }
 
 int getNumWriteIO(BM_BufferPool *const bm) {
-    return bm->numberOfWriteIO;
+    return bm->numWriteIO;
 }
