@@ -46,7 +46,7 @@ BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum
  */
 RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh) {
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    for (int i = 1; i < bm->numPages; i++) {
+    for (int i = 1; i < bm->numPages; i++) { // i = 1 cuz want lastpinnedpos + 1, at the very least. If cant evict that one, then go to next one, +2, +3 and so on
         int position = (framesHandle->lastPinnedPos + i) % bm->numPages;
         BM_PageFrame *frame = framesHandle->frames[position];
         /* The frame can be evicted */
@@ -333,7 +333,7 @@ PageNumber *getFrameContents(BM_BufferPool *const bm) {
     return arrayOfPageNumber;
 
 
-
+    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
     return framesHandle -> frameContents;
 }
@@ -351,7 +351,7 @@ bool *getDirtyFlags(BM_BufferPool *const bm) {
     return array;
 
 
-
+    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
     return framesHandle -> dirtyFlags;
 }
@@ -369,7 +369,7 @@ int *getFixCounts(BM_BufferPool *const bm) {
     return array;
 
 
-
+    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
     return framesHandle -> fixCounts;
 }
