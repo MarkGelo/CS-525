@@ -57,6 +57,28 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     return RC_OK;
 }
 
+void freeFrame(BM_PageFrame *curFrame){
+    free(curFrame -> page -> data);
+    //free(curFrame -> dirtyFlag);
+    //free(curFrame -> fixCount);
+    //free(curFrame -> age);
+    //free(curFrame -> timeUsed);
+    free(curFrame -> page);
+    free(curFrame);
+
+    return;
+}
+
+void freeTable(BM_PageTable *table){
+    free(table -> frames);
+    free(table -> frameContents);
+    free(table -> dirtyFlags);
+    free(table -> fixCounts);
+    free(table);
+
+    return;
+}
+
 // shutdown buffer pool, freeing everything and making sure dirty pages are written back. if any pinned, errors out.
 RC shutdownBufferPool(BM_BufferPool *const bm){
     // assumes buffer pool is init already
@@ -82,16 +104,10 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
         if(curFrame -> dirtyFlag) {
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
         }
-        free(curFrame -> page -> data);
-        free(curFrame -> page);
-        free(curFrame);
+        freeFrame(curFrame);
 
     }
-    free(table -> frames);
-    free(table -> frameContents);
-    free(table -> dirtyFlags);
-    free(table -> fixCounts);
-    free(table);
+    freeTable(table);
 
     closePageFile(&fh);
     return RC_OK;
