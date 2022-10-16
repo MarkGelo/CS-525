@@ -124,7 +124,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
     BM_PageTable *table = bm -> mgmtData;
     int i;
     for(i = 0; i < bm -> numPages; i++){
-        if(table -> frameContents[i] == NULL){
+        if(table -> frameContents[i] == NO_PAGE){
             continue;
         }
         if(table -> dirtyFlags[i]){
