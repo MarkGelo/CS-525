@@ -23,7 +23,7 @@ BM_PageTable *initPageTable(int numPages) {
     table -> lastPinnedPos = -1;
 
     // init other arrays
-    
+
     return table;
 }
 
@@ -43,7 +43,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     bm -> numReadIO = 0;
     
     // create page table , with numPages page frames
-    bm -> mgmtData = createFrames(numPages);
+    bm -> mgmtData = initPageTable(numPages);
 
     return RC_OK;
 }
