@@ -268,29 +268,26 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
 
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
-    
+            
+    BM_PageTable *table = bm -> mgmtData;
     int idx = getFrame(bm, page -> pageNum);
-    if(idx == -1){ // could not find page - error
-        return -3;
-    }
-    BM_PageTable *framesHandle = bm -> mgmtData;
-    BM_PageFrame *foundFrame = framesHandle -> frames[idx];
-    
+    // dont care if not found page, if not found then add later on
+    if(idx != -1){ // found alreadyin table
+        table -> lastPinnedPos = table -> frames[idx] -> framePos;
+        table -> frames[idx] -> fixCount += 1;
+        table -> fixCounts[idx] += 1;
+        page -> data = table -> frames[idx] -> data; // data field should point to the page frame
+        page -> pageNum = table -> frames[idx] -> page -> pageNum; // ?
 
-
-
-    struct timeval tv;
-
-    /* We found the page in the buffer */
-    if (foundFrame != NULL) {
-        page->data = foundFrame->page->data;
-        page->pageNum = pageNum;
-        foundFrame->fixCount++;
+        struct timeval tv;
         gettimeofday(&tv, NULL);
-        foundFrame->timeUsed = tv.tv_usec;
-        framesHandle->lastPinnedPos = foundFrame->framePos;
+        table -> frames[idx] -> timeUsed = tv.tv_usec;
+
         return RC_OK;
     }
+    
+
+
 
     /* Page is not in buffer, we will need to storage manager to get it from the disk */
     char *filename = (char *) bm->pageFile;
