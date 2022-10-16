@@ -270,17 +270,29 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 		const PageNumber pageNum){
 
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, pageNum);
+    int idx = getFrame(bm, page -> pageNum);
     struct timeval tv;
 
     /* We found the page in the buffer */
-    if (foundFrame != NULL) {
+    if(idx != -1){ // found alreadyin table
+        BM_PageFrame *foundFrame = framesHandle -> frames[idx];
         page->data = foundFrame->page->data;
         page->pageNum = pageNum;
         foundFrame->fixCount++;
         gettimeofday(&tv, NULL);
         foundFrame->timeUsed = tv.tv_usec;
         framesHandle->lastPinnedPos = foundFrame->framePos;
+        return RC_OK;
+
+        table -> lastPinnedPos = table -> frames[idx] -> framePos;
+        table -> frames[idx] -> fixCount += 1;
+        table -> fixCounts[idx] += 1;
+        page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
+        page -> pageNum = pageNum; // ?
+
+        gettimeofday(&tv, NULL);
+        table -> frames[idx] -> timeUsed = tv.tv_usec;
+
         return RC_OK;
     }
 
