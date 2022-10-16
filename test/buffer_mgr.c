@@ -57,6 +57,70 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     return RC_OK;
 }
 
+RC shutdownBufferPool(BM_BufferPool *const bm){
+    // assumes buffer pool is init already
+    SM_FileHandle fh;
+    if (openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
+    BM_PageTable *table = bm -> mgmtData;
+
+    // go through each frame and see if dirty, if so write back
+
+    // todo, just check dirtyflags and fixcounts array? but should be same efficiency
+    for (int i = 0; i < bm -> numPages; i++) {
+        BM_PageFrame *curFrame = table -> frames[i];
+        if (curFrame != NULL) {
+            if (curFrame -> fixCount != 0) {
+                //CHANGE RETURN CODE
+                return RC_WRITE_FAILED;
+            }
+            if (curFrame -> dirtyFlag == TRUE) {
+                writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+            }
+            free(curFrame -> page -> data);
+            free(curFrame -> page);
+            free(curFrame);
+        }
+    }
+    free(table -> frames);
+    free(table);
+    closePageFile(&fh);
+    return RC_OK;
+}
+
+/*
+RC shutdownBufferPool(BM_BufferPool *const bm) {
+    char *filename = (char *) bm->pageFile;
+    SM_FileHandle fh;
+    if (openPageFile(filename, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+    BM_PageTable *frames = bm->mgmtData;
+    for (int i = 0; i < bm->numPages; i++) {
+        BM_PageFrame *frame = frames->frames[i];
+        if (frame != NULL) {
+            if (frame->fixCount != 0) {
+                //CHANGE RETURN CODE
+                return RC_WRITE_FAILED;
+            }
+            if (frame->dirtyFlag == TRUE) {
+                writeBlock(frame->page->pageNum, &fh, frame->page->data);
+            }
+            free(frame->page->data);
+            free(frame->page);
+            free(frame);
+        }
+    }
+    free(frames->frames);
+    free(frames);
+    closePageFile(&fh);
+    return RC_OK;
+}
+*/
+
+
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
  * If not found returns NULL
@@ -147,34 +211,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     leastRecentlyUsedFrame->timeUsed = tv.tv_usec;
 
     framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
-    closePageFile(&fh);
-    return RC_OK;
-}
-
-RC shutdownBufferPool(BM_BufferPool *const bm) {
-    char *filename = (char *) bm->pageFile;
-    SM_FileHandle fh;
-    if (openPageFile(filename, &fh) != RC_OK) {
-        return RC_FILE_NOT_FOUND;
-    }
-    BM_PageTable *frames = bm->mgmtData;
-    for (int i = 0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = frames->frames[i];
-        if (frame != NULL) {
-            if (frame->fixCount != 0) {
-                //CHANGE RETURN CODE
-                return RC_WRITE_FAILED;
-            }
-            if (frame->dirtyFlag == TRUE) {
-                writeBlock(frame->page->pageNum, &fh, frame->page->data);
-            }
-            free(frame->page->data);
-            free(frame->page);
-            free(frame);
-        }
-    }
-    free(frames->frames);
-    free(frames);
     closePageFile(&fh);
     return RC_OK;
 }
