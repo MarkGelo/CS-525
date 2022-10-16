@@ -11,7 +11,7 @@
 // initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
+    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages); // todo, just do malloc(sizeof(BM_PageFrame) * numPages) ?? 
     PageNumber *frameContents = malloc(sizeof(PageNumber) * numPages);
 	bool *dirtyFlags = malloc(sizeof(bool) * numPages);
 	int *fixCounts = malloc(sizeof(int) * numPages);
@@ -189,6 +189,13 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
+RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
+		const PageNumber pageNum){
+    
+
+}
+
+
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
@@ -288,7 +295,13 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
            const PageNumber pageNum) {
 
     BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, pageNum);
+
+    int idx = getFrame(bm, page -> pageNum); // mine
+    if(idx == -1){ // could not find page - error
+        return -3;
+    }
+    BM_PageFrame *foundFrame = framesHandle -> frames[idx];
+
     struct timeval tv;
 
     /* We found the page in the buffer */
