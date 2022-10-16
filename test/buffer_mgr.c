@@ -263,7 +263,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
                 bm->numWriteIO++;
             }
 
-            printf("Mine: %d\n", table -> frames[first]);
+            printf("Mine: %d\n", table -> frames[first] -> timeUsed);
             printf("THIS: %d\n", frame -> timeUsed);
 
             free(frame->page->data);
