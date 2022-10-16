@@ -144,7 +144,7 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
     BM_PageTable *table = bm -> mgmtData;
     PageNumber *frameContents = table -> frameContents;
     for(int i = 0; i < bm -> numPages; i++){
-        if(frameContents[i] -> pageNum != NO_PAGE && frameContents[i] -> pageNum == pageNum){
+        if(frameContents[i] != NO_PAGE && frameContents[i] == pageNum){
             return i;
         }
     }
