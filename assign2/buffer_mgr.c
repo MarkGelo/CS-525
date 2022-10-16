@@ -54,6 +54,12 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     // create page table , with numPages page frames, also with other arrays for stats, hash?
     bm -> mgmtData = initPageTable(numPages);
 
+    // open file and save
+    bm -> fh = malloc(sizeof(SM_FileHandle));
+    if(openPageFile(bm -> pageFile, bm -> fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
     return RC_OK;
 }
 
