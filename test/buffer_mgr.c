@@ -8,7 +8,7 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
-/*
+
 // buffer manager interface pool handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
@@ -37,7 +37,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 
     return RC_OK;
 }
-*/
+
 
 /*
  * Create an empty frame container with numberOfFrames frames
@@ -54,6 +54,7 @@ BM_PageTable *createFrames(int numberOfFrames) {
     return table;
 }
 
+/*
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
                   const int numPages, ReplacementStrategy strategy,
@@ -73,7 +74,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     }
     return RC_FILE_NOT_FOUND;
 }
-
+*/
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
