@@ -3,6 +3,7 @@
 
 // Include return codes and methods for logging errors
 #include "dberror.h"
+#include "storage_mgr.h"
 
 // Include bool DT
 #include "dt.h"
