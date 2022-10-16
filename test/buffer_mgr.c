@@ -12,19 +12,20 @@ int globalTime = 0; // keep time, used for keeping time when frames were used, L
 // initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages); // todo, just do malloc(sizeof(BM_PageFrame) * numPages) ?? 
+    BM_PageFrame *frames = malloc(sizeof(BM_PageFrame) * numPages); // todo, just do malloc(sizeof(BM_PageFrame) * numPages) ?? 
     PageNumber *frameContents = malloc(sizeof(PageNumber) * numPages);
 	bool *dirtyFlags = malloc(sizeof(bool) * numPages);
 	int *fixCounts = malloc(sizeof(int) * numPages);
 
     int i;
     for(i = 0; i < numPages; i++) {
-        table -> frames[i] = NULL; // frame should be empty
+        frames[i] = NULL; // frame should be empty
         frameContents[i] = NO_PAGE; // since frame empty, shouldnt have anything in frame content
         dirtyFlags[i] = false;
         fixCounts[i] = 0;
     }
     // for stats and easability
+    table -> frames = frames;
     table -> frameContents = frameContents;
     table -> dirtyFlags = dirtyFlags;
     table -> fixCounts = fixCounts;
