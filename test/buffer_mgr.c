@@ -454,9 +454,9 @@ bool *getDirtyFlags(BM_BufferPool *const bm) {
 }
 /* Results need to be freed after use */
 int *getFixCounts(BM_BufferPool *const bm) {
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    return framesHandle -> fixCounts;
-    
+    BM_PageTable *table = bm->mgmtData;
+    return table -> fixCounts;
+
     int *array = malloc(sizeof(int) * bm->numPages);
     BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
@@ -467,11 +467,6 @@ int *getFixCounts(BM_BufferPool *const bm) {
             array[i] = 0;
     }
     return array;
-
-
-    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    return framesHandle -> fixCounts;
 }
 
 int getNumReadIO(BM_BufferPool *const bm) {
