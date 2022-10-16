@@ -293,7 +293,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         return RC_FILE_NOT_FOUND;
     }
 
-    ensureCapacity(pageNum + 1, &fh);
+    //ensureCapacity(pageNum + 1, &fh);
 
     page -> data = malloc(PAGE_SIZE);
     if(readBlock(pageNum, &fh, page -> data) != RC_OK){
