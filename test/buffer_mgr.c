@@ -224,6 +224,53 @@ RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHa
     return RC_WRITE_FAILED;
 }
 
+RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
+    BM_PageTable *table = bm -> mgmtData;
+
+    // check fixcounts array, if all non zero, cant do evict anyone
+    int i;
+    int avail = 0;
+    for(i = 0; i < bm -> numPages; i++){
+        if(table -> fixCounts[i] == 0){
+            avail += 1;
+        }
+    }
+    if(avail == 0){ // all frames are pinned, nothing can be evicted
+        return -3;
+    }
+
+    int first = 0; // opposite of lru, use the one recently used, FIFO. cant evict fixcount != 0, so not that simple FIFO
+    for(i = 1; i < bm -> numPages; i++){
+        if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
+            continue;
+        }
+        if(table -> frames[i] -> timeUsed > table -> frames[first] -> timeUsed){ // timeUsed should be greatest, aka FIFO
+            first = i;
+        }
+    }
+
+    // if is dirty, write
+    if(table -> frames[first] -> dirtyFlag){
+        writeBlock(table -> frames[first] -> page -> pageNum, &fh, table -> frames[first] -> page -> data);
+        bm -> numWriteIO += 1;
+    }
+
+    // evict and write data
+    free(table -> frames[first] -> page -> data);
+    table -> frames[first] -> page -> data = page -> data;
+    table -> frames[first] -> page -> pageNum = page -> pageNum;
+    table -> frames[first] -> fixCount = 1;
+    table -> fixCounts[first] = 1;
+    table -> frames[first] -> dirtyFlag = false;
+    table -> dirtyFlags[first] = false;
+    table -> frames[first] -> timeUsed = globalTime;
+    globalTime += 1;
+
+    table -> lastPinnedPos = table -> frames[first] -> framePos;
+    closePageFile(&fh);
+    return RC_OK;
+}
+
 RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     BM_PageTable *table = bm -> mgmtData;
 
@@ -243,11 +290,10 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     int lru = 0;
     // iterate till find least recently used
     for(i = 1; i < bm -> numPages; i++){
-        BM_PageFrame *curFrame = table -> frames[i];
-        if(curFrame -> fixCount != 0){ // cant evict if not fixcount 0 
+        if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
-        if(curFrame -> timeUsed < table -> frames[lru] -> timeUsed){
+        if(table -> frames[i] -> timeUsed < table -> frames[lru] -> timeUsed){
             lru = i;
         }
     }
@@ -273,49 +319,6 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     closePageFile(&fh);
     return RC_OK;
 
-}
-
-/*
- * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
- * pool to store the information.
- * The strategy used to find a place is LRU
- */
-RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh) {
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    BM_PageFrame *leastRecentlyUsedFrame = framesHandle->frames[0];
-    for (int i =0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = framesHandle->frames[i];
-        /* Searching the least recently used frame from the one that can be evicted (i.e fixCount = 0) */
-        if (frame->fixCount == 0) {
-            if (frame->timeUsed < leastRecentlyUsedFrame->timeUsed) {
-                leastRecentlyUsedFrame = frame;
-            }
-        }
-    }
-
-    /* Every frames are pinned at least once */
-    if (leastRecentlyUsedFrame->fixCount != 0){
-        // CHANGE RETURN CODE
-        return RC_WRITE_FAILED;
-    }
-
-    if (leastRecentlyUsedFrame->dirtyFlag == TRUE) {
-        if (writeBlock(leastRecentlyUsedFrame->page->pageNum, &fh, leastRecentlyUsedFrame->page->data) != RC_OK)
-            return RC_WRITE_FAILED;
-        bm->numWriteIO++;
-    }
-    free(leastRecentlyUsedFrame->page->data);
-
-    leastRecentlyUsedFrame->page->data = page->data;
-    leastRecentlyUsedFrame->page->pageNum = page->pageNum;
-    leastRecentlyUsedFrame->fixCount = 1;
-    leastRecentlyUsedFrame->dirtyFlag = 0;
-    leastRecentlyUsedFrame->timeUsed = globalTime;
-    globalTime += 1;
-
-    framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
-    closePageFile(&fh);
-    return RC_OK;
 }
 
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
