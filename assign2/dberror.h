@@ -15,6 +15,13 @@ typedef int RC;
 #define RC_WRITE_FAILED 3
 #define RC_READ_NON_EXISTING_PAGE 4
 
+// error codes for assign2
+#define RC_PAGE_NOT_FOUND 100 // when looking for pages to markdirty and such, if not found
+#define RC_NO_PAGE_CAN_BE_EVICTED 101 // when looking to evict, but nothing can be evicted
+#define RC_UNABLE_TO_PIN 102 // when pinning but something goes awry
+#define RC_STRATEGY_NOT_IMPLEMENTED 103
+#define RC_BUFFER_POOL_SHUTDOWN_ERROR 104
+
 #define RC_RM_COMPARE_VALUE_OF_DIFFERENT_DATATYPE 200
 #define RC_RM_EXPR_RESULT_IS_NOT_BOOLEAN 201
 #define RC_RM_BOOLEAN_EXPR_ARG_IS_NOT_BOOLEAN 202

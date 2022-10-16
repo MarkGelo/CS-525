@@ -98,8 +98,8 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
             continue;
         }
         if(curFrame -> fixCount != 0) {
-            printf("ERROR - Attempting to shutdown buffer pool that has a pinned page");
-            return -3;
+            printf("ERROR - Attempting to shutdown buffer pool that has a pinned page\n");
+            return RC_BUFFER_POOL_SHUTDOWN_ERROR;
         }
         if(curFrame -> dirtyFlag) {
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
@@ -160,7 +160,7 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
 RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
-        return -3;
+        return RC_PAGE_NOT_FOUND;
     }
     BM_PageTable *table = bm -> mgmtData;
     table -> frames[idx] -> dirtyFlag = true; // mark that page as dirty
@@ -172,12 +172,12 @@ RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page){
 RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
-        return -3;
+        return RC_PAGE_NOT_FOUND;
     }
     BM_PageTable *table = bm -> mgmtData;
     if(table -> frames[idx] -> fixCount == 0){ // if fixCount == 0, dont do -1, cuz may case errors later on
         // or maybe just ignore if this case dont, do -1
-        printf("Attempting to unpin page, when it is not pinned at all, fixCount == 0");
+        printf("Attempting to unpin page, when it is not pinned at all, fixCount == 0\n");
         // just leave it at 0
     }else{
         table -> frames[idx] -> fixCount -= 1; // unpin, -1 to fixCount.
@@ -190,7 +190,7 @@ RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page){
 RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
-        return -3;
+        return RC_PAGE_NOT_FOUND;
     }
     SM_FileHandle fh;
     if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
@@ -218,7 +218,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
         }
     }
     if(avail == 0){ // all frames are pinned, nothing can be evicted
-        return -3;
+        return RC_NO_PAGE_CAN_BE_EVICTED;
     }
 
     int first = 0; // opposite of lru, use the one recently used, FIFO. cant evict fixcount != 0, so not that simple FIFO
@@ -269,7 +269,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
         }
     }
     if(avail == 0){ // all frames are pinned, nothing can be evicted
-        return -3;
+        return RC_NO_PAGE_CAN_BE_EVICTED;
     }
 
 
@@ -341,7 +341,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(readBlock(pageNum, &fh, page -> data) != RC_OK){
         free(page -> data);
         closePageFile(&fh);
-        return -3;
+        return RC_UNABLE_TO_PIN;
     }
     bm -> numReadIO += 1;
 
@@ -380,13 +380,13 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     }else if(bm -> strategy == RS_FIFO){
         return FIFO(bm, page, fh);
     }else{
-        printf("Not implemented this strategy");
-        return -3;
+        printf("Not implemented this strategy\n");
+        return RC_STRATEGY_NOT_IMPLEMENTED;
     }
 
     // somehow couldnt find a place so error
     closePageFile(&fh);
-    return -3;
+    return RC_UNABLE_TO_PIN;
 }
 
 // statistics interface
