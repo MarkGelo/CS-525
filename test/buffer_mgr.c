@@ -47,7 +47,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     for(i = 0; i < numPages; i++){
         table -> frames[i] = NULL; // all page frames should initially be empty
     }
-    bm -> mgmtData = table;
+    bm -> mgmtData = *table;
 
     return RC_OK;
 }
