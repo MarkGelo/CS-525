@@ -8,15 +8,12 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
-/*
- * Create an empty frame container with numberOfFrames frames
- * The result need to be freed before the end of the program
- */
+
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
     table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
     int i;
-    for (i = 0; i < numberOfFrames; i++) {
+    for (i = 0; i < numPages; i++) {
         table -> frames[i] = NULL;
     }
     table -> numFramesUsed = 0;
