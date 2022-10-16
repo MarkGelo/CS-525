@@ -7,8 +7,6 @@
 // Include bool DT
 #include "dt.h"
 
-#include <time.h> // remove?
-
 // Replacement Strategies
 typedef enum ReplacementStrategy {
 	RS_FIFO = 0,
@@ -27,6 +25,7 @@ typedef struct BM_BufferPool {
 	int numPages;
 	ReplacementStrategy strategy;
 	void *mgmtData; // use this one to store the bookkeeping info your buffer
+	// for stats functions
     int numWriteIO;
     int numReadIO;
 	// manager needs for a buffer pool
@@ -41,16 +40,17 @@ typedef struct BM_PageFrame {
     BM_PageHandle *page;
     bool dirtyFlag;
     int fixCount;
-    int timeUsed; // LRU
 	int age; // FIFO
+    int timeUsed; // LRU
 } BM_PageFrame;
 
 typedef struct BM_PageTable {
     BM_PageFrame **frames;
-    int numFramesUsed;
+	// arrays, hashtable for easy lookups and for stats functions
 	PageNumber *frameContents; //array of PageNumbers
 	bool *dirtyFlags; // array for stats
 	int *fixCounts; // array
+	int numFramesUsed;
 } BM_PageTable;
 
 // convenience macros
