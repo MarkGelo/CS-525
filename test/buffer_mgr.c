@@ -9,6 +9,17 @@
 #include "buffer_mgr.h"
 
 
+BM_PageTable *initPageTable(int numberOfFrames) {
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
+    for (int i = 0; i < numberOfFrames; i++) {
+        table->frames[i] = NULL;
+    }
+    table->numFramesUsed = 0;
+    table->lastPinnedPos = -1;
+    return table;
+}
+
 // buffer manager interface pool handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
@@ -23,35 +34,10 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     bm -> strategy = strategy;
     bm -> numWriteIO = 0;
     bm -> numReadIO = 0;
-    
     // create page table , with numPages page frames
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table -> numFramesUsed = 0;
-    table -> lastPinnedPos = 0;
-    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
-    int i;
-    for(i = 0; i < numPages; i++){
-        table -> frames[i] = NULL; // all page frames should initially be empty
-    }
-    bm -> mgmtData =  &table;
+    bm -> mgmtData = initPageTable(numPages);
 
     return RC_OK;
-}
-
-
-/*
- * Create an empty frame container with numberOfFrames frames
- * The result need to be freed before the end of the program
- */
-BM_PageTable *createFrames(int numberOfFrames) {
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
-    for (int i = 0; i < numberOfFrames; i++) {
-        table->frames[i] = NULL;
-    }
-    table->numFramesUsed = 0;
-    table->lastPinnedPos = -1;
-    return table;
 }
 
 /*
