@@ -306,8 +306,13 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     page -> pageNum = pageNum;
 
 
-    /* Looking if we still have place in the frames */
-    if (table->numFramesUsed < bm->numPages) {
+    // if free space in table
+    if (table -> numFramesUsed < bm -> numPages) {
+        int i;
+        for(i = 0; i < bm -> numPages; i++){
+            print("here");
+        }
+        
         int availablePosition = table->lastPinnedPos + 1;
 
         BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
