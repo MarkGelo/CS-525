@@ -310,9 +310,11 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     // if free space in table
     if(table -> numFramesUsed < bm -> numPages){
         // iterate until find free spot
+        printf("here");
         int i;
         for(i = 0; i < bm -> numPages; i++){
             if(table -> frames[i] == NULL){
+                printf("found one");
                 BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
                 frame -> page = malloc(sizeof(BM_PageHandle));
                 frame -> page -> data = page -> data;
