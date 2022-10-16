@@ -436,8 +436,21 @@ PageNumber *getFrameContents(BM_BufferPool *const bm) {
 }
 /* Results need to be freed after use */
 bool *getDirtyFlags(BM_BufferPool *const bm) {
-    BM_PageTable *table = bm->mgmtData;
-    return table -> dirtyFlags;
+    bool *array = malloc(sizeof(bool) * bm->numPages);
+    BM_PageTable *frames = bm->mgmtData;
+    for (int i = 0; i < bm->numPages; i++) {
+        BM_PageFrame *frame = frames->frames[i];
+        if (frame != NULL) {
+            array[i] = frame->dirtyFlag;
+        } else
+            array[i] = FALSE;
+    }
+    return array;
+
+
+    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    return framesHandle -> dirtyFlags;
 }
 /* Results need to be freed after use */
 int *getFixCounts(BM_BufferPool *const bm) {
