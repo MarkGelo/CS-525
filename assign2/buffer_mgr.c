@@ -11,8 +11,8 @@ int globalTime = 0; // keep time, used for keeping time when frames were used, L
 
 // initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages); // todo, just do malloc(sizeof(BM_PageFrame) * numPages) ?? 
+    BM_PageTable *table = MAKE_PAGE_TABLE();
+    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
     PageNumber *frameContents = malloc(sizeof(PageNumber) * numPages);
 	bool *dirtyFlags = malloc(sizeof(bool) * numPages);
 	int *fixCounts = malloc(sizeof(int) * numPages);

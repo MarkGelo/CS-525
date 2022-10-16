@@ -63,6 +63,9 @@ typedef struct BM_PageTable {
 #define MAKE_PAGE_FRAME()				\
 		((BM_PageFrame *) malloc (sizeof(BM_PageFrame)))
 
+#define MAKE_PAGE_TABLE()				\
+		((BM_PageTable *) malloc (sizeof(BM_PageTable)))
+
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
