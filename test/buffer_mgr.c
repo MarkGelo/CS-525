@@ -240,7 +240,9 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     }
 
     int first = 0; // opposite of lru, use the one recently used, FIFO. cant evict fixcount != 0, so not that simple FIFO
+    printf("Mine: %d", table -> frames[first] -> timeUsed);
     for(i = 1; i < bm -> numPages; i++){
+        printf(" %d", table -> frames[i] -> timeUsed);
         if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
@@ -248,6 +250,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
             first = i;
         }
     }
+    printf("\n");
 
 
 
@@ -431,7 +434,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(bm -> strategy == RS_LRU){
         return LRU(bm, page, fh);
     }else if(bm -> strategy == RS_FIFO){
-        return fifoReplacement(bm, page, fh);
+        return FIFO(bm, page, fh);
     }else{
         printf("Not implemented this strategy");
         return -3;
