@@ -246,7 +246,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
         if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
-        if(table -> frames[i] -> timeUsed > table -> frames[first] -> timeUsed){ // timeUsed should be greatest, aka FIFO
+        if(table -> frames[i] -> timeUsed < table -> frames[first] -> timeUsed){ // timeUsed should be greatest, aka FIFO
             first = i;
         }
     }
