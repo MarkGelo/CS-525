@@ -121,6 +121,21 @@ RC forceFlushPool(BM_BufferPool *const bm){
         return RC_FILE_NOT_FOUND;
     }
 
+    BM_PageTable *table = bm -> mgmtData;
+    int i;
+    for(i = 0; i < bm -> numPages; i++){
+        if(table -> frameContents[i] == NULL){
+            continue;
+        }
+        if(table -> dirtyFlags[i]){
+            writeBlock(table -> frames[i] -> page -> pageNum, &fh, table -> frames[i] -> page -> data);
+            table -> frames[i] -> dirtyFlag = false;
+            table -> dirtyFlags[i] = false;
+            bm -> numWriteIO += 1;
+        }
+    }
+
+    /*
     // todo use dirtyFlags table and fixcounts
     BM_PageTable *table = bm -> mgmtData;
     int i;
@@ -137,6 +152,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
             bm -> numWriteIO += 1;
         }
     }
+    */
 
     closePageFile(&fh);
     return RC_OK;
