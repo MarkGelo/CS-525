@@ -8,6 +8,7 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
+/*
 // buffer manager interface pool handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
@@ -36,8 +37,9 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 
     return RC_OK;
 }
+*/
 
-/*
+
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
                   const int numPages, ReplacementStrategy strategy,
@@ -57,20 +59,19 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     }
     return RC_FILE_NOT_FOUND;
 }
-*/
 
 /*
  * Create an empty frame container with numberOfFrames frames
  * The result need to be freed before the end of the program
  */
 BM_PageTable *createFrames(int numberOfFrames) {
-    BM_PageTable *frames = malloc(sizeof(BM_PageTable));
-    frames->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
     for (int i = 0; i < numberOfFrames; i++) {
-        frames->frames[i] = NULL;
+        table->frames[i] = NULL;
     }
-    frames->numFramesUsed = 0;
-    frames->lastPinnedPos = -1;
+    table->numFramesUsed = 0;
+    table->lastPinnedPos = -1;
     return frames;
 }
 
