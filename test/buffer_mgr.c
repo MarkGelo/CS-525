@@ -20,6 +20,7 @@ BM_PageTable *initPageTable(int numberOfFrames) {
     return table;
 }
 
+/*
 // buffer manager interface pool handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
@@ -39,8 +40,9 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 
     return RC_OK;
 }
+*/
 
-/*
+
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
                   const int numPages, ReplacementStrategy strategy,
@@ -51,7 +53,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
         initStorageManager();
         bm->pageFile = (char *) pageFileName;
         bm->numPages = numPages;
-        bm->mgmtData = createFrames(numPages);
+        bm->mgmtData = initPageTable(numPages);
         bm->strategy = strategy;
         bm->numReadIO = 0;
         bm->numWriteIO = 0;
@@ -60,7 +62,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     }
     return RC_FILE_NOT_FOUND;
 }
-*/
+
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
