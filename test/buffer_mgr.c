@@ -8,18 +8,6 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
-
-BM_PageTable *initPageTable(int numberOfFrames) {
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
-    for (int i = 0; i < numberOfFrames; i++) {
-        table->frames[i] = NULL;
-    }
-    table->numFramesUsed = 0;
-    table->lastPinnedPos = -1;
-    return table;
-}
-
 /*
 // buffer manager interface pool handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
@@ -35,12 +23,36 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     bm -> strategy = strategy;
     bm -> numWriteIO = 0;
     bm -> numReadIO = 0;
+    
     // create page table , with numPages page frames
-    bm -> mgmtData = initPageTable(numPages);
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table -> numFramesUsed = 0;
+    table -> lastPinnedPos = 0;
+    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
+    int i;
+    for(i = 0; i < numPages; i++){
+        table -> frames[i] = NULL; // all page frames should initially be empty
+    }
+    bm -> mgmtData = table;
 
     return RC_OK;
 }
 */
+
+/*
+ * Create an empty frame container with numberOfFrames frames
+ * The result need to be freed before the end of the program
+ */
+BM_PageTable *createFrames(int numberOfFrames) {
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
+    for (int i = 0; i < numberOfFrames; i++) {
+        table->frames[i] = NULL;
+    }
+    table->numFramesUsed = 0;
+    table->lastPinnedPos = -1;
+    return table;
+}
 
 
 // Buffer Manager Interface Pool Handling
@@ -53,7 +65,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
         initStorageManager();
         bm->pageFile = (char *) pageFileName;
         bm->numPages = numPages;
-        bm->mgmtData = initPageTable(numPages);
+        bm->mgmtData = createFrames(numPages);
         bm->strategy = strategy;
         bm->numReadIO = 0;
         bm->numWriteIO = 0;
