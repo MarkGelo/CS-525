@@ -284,6 +284,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         framesHandle->lastPinnedPos = foundFrame->framePos;
         return RC_OK;
 
+        /*
         table -> lastPinnedPos = table -> frames[idx] -> framePos;
         table -> frames[idx] -> fixCount += 1;
         table -> fixCounts[idx] += 1;
@@ -294,6 +295,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         table -> frames[idx] -> timeUsed = tv.tv_usec;
 
         return RC_OK;
+        */
     }
 
     /* Page is not in buffer, we will need to storage manager to get it from the disk */
