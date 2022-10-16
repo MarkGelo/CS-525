@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/time.h>
 
 #include "dberror.h"
 #include "storage_mgr.h"
@@ -272,8 +271,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
 
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
-
-    struct timeval tv; // DEL?
 
     BM_PageTable *table = bm -> mgmtData;
     int idx = getFrame(bm, pageNum);
