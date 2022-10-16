@@ -7,7 +7,7 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
-int globalTime = 0; // keep time, used for keeping time when frames were used
+int globalTime = 0; // keep time, used for keeping time when frames were used, LRU
 
 // initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
@@ -212,7 +212,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
         if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
-        if(table -> frames[i] -> timeUsed < table -> frames[first] -> timeUsed){ // timeUsed should be greatest, aka FIFO ???? but no?
+        if(table -> frames[i] -> age < table -> frames[first] -> age){ // oldest, then evict, FIFO
             first = i;
         }
     }
@@ -344,7 +344,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 frame -> dirtyFlag = false;
                 table -> dirtyFlags[i] = false;
                 table -> frameContents[i] = pageNum;
-                frame -> framePos = i; // delet
                 frame -> page -> pageNum = pageNum;
 
                 frame -> timeUsed = globalTime;

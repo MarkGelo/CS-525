@@ -7,7 +7,7 @@
 // Include bool DT
 #include "dt.h"
 
-#include <time.h>
+#include <time.h> // remove?
 
 // Replacement Strategies
 typedef enum ReplacementStrategy {
@@ -39,7 +39,6 @@ typedef struct BM_PageHandle {
 
 typedef struct BM_PageFrame {
     BM_PageHandle * page;
-    int framePos;
     bool dirtyFlag;
     int fixCount;
     int timeUsed; // LRU
