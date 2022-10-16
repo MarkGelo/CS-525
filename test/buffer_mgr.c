@@ -305,7 +305,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     bm -> numReadIO += 1;
     page -> pageNum = pageNum;
 
-    
+
 
     /* Looking if we still have place in the frames */
     if (table->numFramesUsed < bm->numPages) {
@@ -329,42 +329,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     }
 
     /*
-    struct timeval tv; // DEL?
-
-    BM_PageTable *table = bm -> mgmtData;
-    int idx = getFrame(bm, pageNum);
-    // dont care if not found page, if not found then add later on
-    if(idx != -1){ // found alreadyin table
-        table -> lastPinnedPos = table -> frames[idx] -> framePos;
-        table -> frames[idx] -> fixCount += 1;
-        table -> fixCounts[idx] += 1;
-        page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
-        page -> pageNum = pageNum; // ?
-
-        gettimeofday(&tv, NULL);
-        table -> frames[idx] -> timeUsed = tv.tv_usec;
-
-        return RC_OK;
-    }
-    
-    // not in buffer pool
-    SM_FileHandle fh;
-    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
-        return RC_FILE_NOT_FOUND;
-    }
-
-    ensureCapacity(pageNum + 1, &fh);
-
-    page -> data = malloc(PAGE_SIZE);
-    if(readBlock(pageNum, &fh, page -> data) != RC_OK){
-        free(page -> data);
-        closePageFile(&fh);
-        return -3;
-    }
-
-    bm -> numReadIO += 1;
-    page -> pageNum = pageNum;
-
     // if free space in table
     if(table -> numFramesUsed < bm -> numPages){
         // iterate until find free spot
