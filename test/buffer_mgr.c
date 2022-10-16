@@ -17,7 +17,7 @@ BM_PageTable *initPageTable(int numPages) {
 	int *fixCounts = malloc(sizeof(int) * numPages);
 
     int i;
-    for (i = 0; i < numPages; i++) {
+    for(i = 0; i < numPages; i++) {
         table -> frames[i] = NULL; // frame should be empty
         frameContents[i] = -1; // since frame empty, shouldnt have anything in frame content
         dirtyFlags[i] = false;
@@ -41,7 +41,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 		const int numPages, ReplacementStrategy strategy,
 		void *stratData){
     
-    if (access(pageFileName, F_OK) != 0){ // file should exists already
+    if(access(pageFileName, F_OK) != 0){ // file should exists already
         return RC_FILE_NOT_FOUND;
     }
 
@@ -61,7 +61,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 RC shutdownBufferPool(BM_BufferPool *const bm){
     // assumes buffer pool is init already
     SM_FileHandle fh;
-    if (openPageFile(bm -> pageFile, &fh) != RC_OK) {
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
 
@@ -70,16 +70,16 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     // go through each frame and see if dirty, if so write back
 
     // todo, just check dirtyflags and fixcounts array? but should be same efficiency
-    for (int i = 0; i < bm -> numPages; i++) {
+    for(int i = 0; i < bm -> numPages; i++) {
         BM_PageFrame *curFrame = table -> frames[i];
-        if (curFrame == NULL){
+        if(curFrame == NULL){
             continue;
         }
-        if (curFrame -> fixCount != 0) {
+        if(curFrame -> fixCount != 0) {
             printf("ERROR - Attempting to shutdown buffer pool that has a pinned page");
             return -3;
         }
-        if (curFrame -> dirtyFlag == true) {
+        if(curFrame -> dirtyFlag) {
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
         }
         free(curFrame -> page -> data);
@@ -97,23 +97,31 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     return RC_OK;
 }
 
-/*
 RC forceFlushPool(BM_BufferPool *const bm){
     SM_FileHandle fh;
-    if (openPageFile(bm -> pageFile, &fh) != RC_OK) {
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
 
     BM_PageTable *table = bm -> mgmtData;
     for(int i = 0; i < bm -> numPages; i++){
         BM_PageFrame *curFrame = table -> frames[i];
-
+        if(curFrame == NULL){
+            continue;
+        }
+        if(curFrame -> dirtyFlag){
+            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+            curFrame -> dirtyFlag = false;
+            bm -> numWriteIO += 1;
+        }
     }
+
+    closePageFile(&fh);
+    return RC_OK;
 }
 
-*/
 
-
+/*
 RC forceFlushPool(BM_BufferPool *const bm) {
     char *filename = (char *) bm->pageFile;
     SM_FileHandle fh;
@@ -134,6 +142,7 @@ RC forceFlushPool(BM_BufferPool *const bm) {
     closePageFile(&fh);
     return RC_OK;
 }
+*/
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
