@@ -189,11 +189,13 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
+/*
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
     
 
 }
+*/
 
 
 
