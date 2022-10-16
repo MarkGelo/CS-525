@@ -295,7 +295,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     free(table -> frames[first] -> page -> data);
     table -> frames[first] -> page -> data = page -> data;
     table -> frames[first] -> page -> pageNum = page -> pageNum;
-    table -> frameContents[first] = pageNum;
+    table -> frameContents[first] = page -> pageNum;
     table -> frames[first] -> fixCount = 1;
     table -> fixCounts[first] = 1;
     table -> frames[first] -> dirtyFlag = false;
