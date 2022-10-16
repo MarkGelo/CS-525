@@ -279,7 +279,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         table -> frames[idx] -> fixCount += 1;
         table -> fixCounts[idx] += 1;
         page -> data = table -> frames[idx] -> data; // data field should point to the page frame
-        page -> pageNum = table -> frames[idx] -> page -> pageNum; // ?
+        page -> pageNum = pageNum; // ?
 
         gettimeofday(&tv, NULL);
         table -> frames[idx] -> timeUsed = tv.tv_usec;
@@ -287,49 +287,51 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         return RC_OK;
     }
     
-
-
-
-    /* Page is not in buffer, we will need to storage manager to get it from the disk */
-    char *filename = (char *) bm->pageFile;
+    // not in buffer pool
     SM_FileHandle fh;
-    if (openPageFile(filename, &fh) != RC_OK) {
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
-    ensureCapacity(pageNum + 1, &fh); // +1 because pages are numbered started from 0
 
-    page->data = malloc(PAGE_SIZE);
+    ensureCapacity(pageNum + 1, &fh);
 
-
-    RC read = readBlock(pageNum, &fh, page->data);
-    if (read != RC_OK) {
-        free(page->data);
+    page -> data = malloc(PAGE_SIZE);
+    if(readBlock(pageNum, &fh, page -> data) != RC_OK){
+        free(page -> data);
         closePageFile(&fh);
-        return read;
+        return -3;
     }
-    bm->numReadIO++;
 
-    page->pageNum = pageNum;
+    bm -> numReadIO += 1;
+    page -> pageNum = pageNum;
 
-    /* Looking if we still have place in the frames */
-    if (framesHandle->numFramesUsed < bm->numPages) {
-        int availablePosition = framesHandle->lastPinnedPos + 1;
+    // if free space in table
+    if(table -> numFramesUsed < bm -> numPages){
+        // iterate until find free spot
+        int i;
+        for(i = 0; i < bm -> numPages; i++){
+            if(table -> frames[i] == NULL){
+                BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
+                frame -> page = malloc(sizeof(BM_PageHandle));
+                frame -> page -> data = page -> data;
+                frame -> fixCount = 1;
+                table -> fixCounts[idx] = 1;
+                frame -> dirtyFlag = false;
+                table -> dirtyFlags[idx] = false;
+                frame -> framePos = i; // delet
+                frame -> page -> pageNum = pageNum;
 
-        BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
-        frame->page = malloc(sizeof(BM_PageHandle));
+                gettimeofday(&tv, NULL);
+                frame -> timeUsed = tv.tv_usec;
 
-        frame->page->data = page->data;
-        frame->fixCount = 1;
-        frame->dirtyFlag = FALSE;
-        frame->framePos = availablePosition;
-        frame->page->pageNum = pageNum;
-        gettimeofday(&tv, NULL);
-        frame->timeUsed = tv.tv_usec;
-        framesHandle->frames[availablePosition] = frame;
-        framesHandle->numFramesUsed++;
-        framesHandle->lastPinnedPos = availablePosition;
-        closePageFile(&fh);
-        return RC_OK;
+                table -> frames[i] = frame;
+                table -> numFramesUsed += 1;
+                table -> lastPinnedPos = i;
+
+                closePageFile(&fh);
+                return RC_OK
+            }
+        }
     }
 
     /* If we don't have any place */
