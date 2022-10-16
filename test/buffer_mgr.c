@@ -381,28 +381,28 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     return -3;
 }
 
-// Statistics Interface
 
-/* Results need to be freed after use */
-PageNumber *getFrameContents(BM_BufferPool *const bm) {
-    BM_PageTable *table =  bm->mgmtData;
+// statistics interface
+
+PageNumber *getFrameContents (BM_BufferPool *const bm){
+    BM_PageTable *table = bm->mgmtData;
     return table -> frameContents;
 }
-/* Results need to be freed after use */
-bool *getDirtyFlags(BM_BufferPool *const bm) {
+
+bool *getDirtyFlags (BM_BufferPool *const bm){
     BM_PageTable *table = bm->mgmtData;
     return table -> dirtyFlags;
 }
-/* Results need to be freed after use */
-int *getFixCounts(BM_BufferPool *const bm) {
+
+int *getFixCounts (BM_BufferPool *const bm){
     BM_PageTable *table = bm->mgmtData;
     return table -> fixCounts;
 }
 
-int getNumReadIO(BM_BufferPool *const bm) {
+int getNumReadIO (BM_BufferPool *const bm){
     return bm->numReadIO;
 }
 
-int getNumWriteIO(BM_BufferPool *const bm) {
+int getNumWriteIO (BM_BufferPool *const bm){
     return bm->numWriteIO;
 }
