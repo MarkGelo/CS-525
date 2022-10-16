@@ -48,7 +48,6 @@ typedef struct BM_PageFrame {
 
 typedef struct BM_PageTable {
     BM_PageFrame **frames; // change this to just *frames ... 
-    int lastPinnedPos; // FIFO
     int numFramesUsed;
 	PageNumber *frameContents; //array of PageNumbers
 	bool *dirtyFlags; // array for stats

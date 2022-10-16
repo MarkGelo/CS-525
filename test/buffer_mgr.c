@@ -30,7 +30,6 @@ BM_PageTable *initPageTable(int numPages) {
     table -> fixCounts = fixCounts;
 
     table -> numFramesUsed = 0;
-    table -> lastPinnedPos = -1;
 
     return table;
 }
@@ -238,7 +237,6 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     table -> frames[first] -> age = globalTime;
     globalTime += 1;
 
-    table -> lastPinnedPos = table -> frames[first] -> framePos;
     closePageFile(&fh);
     return RC_OK;
 }
@@ -289,7 +287,6 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     table -> frames[lru] -> age = globalTime;
     globalTime += 1;
 
-    table -> lastPinnedPos = table -> frames[lru] -> framePos;
     closePageFile(&fh);
     return RC_OK;
 
@@ -302,7 +299,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     int idx = getFrame(bm, pageNum);
     // dont care if not found page, if not found then add later on
     if(idx != -1){ // found alreadyin table
-        table -> lastPinnedPos = table -> frames[idx] -> framePos;
         table -> frames[idx] -> fixCount += 1;
         table -> fixCounts[idx] += 1;
         page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
@@ -357,7 +353,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
                 table -> frames[i] = frame;
                 table -> numFramesUsed += 1;
-                table -> lastPinnedPos = i;
 
                 closePageFile(&fh);
                 return RC_OK;
@@ -380,7 +375,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     closePageFile(&fh);
     return -3;
 }
-
 
 // statistics interface
 
