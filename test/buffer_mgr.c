@@ -224,6 +224,57 @@ RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHa
     return RC_WRITE_FAILED;
 }
 
+RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
+    BM_PageTable *table = bm -> mgmtData;
+
+    // check fixcounts array, if all non zero, cant do evict anyone
+    int i;
+    int avail = 0;
+    for(i = 0; i < bm -> numPages; i++){
+        if(table -> fixCounts[i] == 0){
+            avail += 1;
+        }
+    }
+    if(avail == 0){ // all frames are pinned, nothing can be evicted
+        return -3;
+    }
+
+
+    int lru = 0;
+    // iterate till find least recently used
+    for(i = 1; i < bm -> numPages; i++){
+        BM_PageFrame curFrame = table -> frames[i];
+        if(curFrame -> fixCount != 0){ // cant evict if not fixcount 0 
+            continue;
+        }
+        if(curFrame -> timeUsed < table -> frames[lru] -> timeUsed){
+            lru = i;
+        }
+    }
+
+    // if lru is dirty, write
+    if(table -> frames[lru] -> dirtyFlag){
+        writeBlock(table -> frames[lru] -> page -> pageNum, &fh, table -> frames[lru] -> page -> data);
+        bm -> numWriteIO += 1;
+    }
+
+    // evict and write data
+    free(table -> frames[lru] -> page -> data);
+    table -> frames[lru] -> page -> data = page -> data;
+    table -> frames[lru] -> page -> pageNum = page -> pageNum;
+    table -> frames[lru] -> fixCount = 1;
+    table -> fixCounts[lru] = 1;
+    table -> frames[lru] -> dirtyFlag = false;
+    table -> dirtyFlags[lru] = false;
+    table -> frames[lru] -> timeUsed = globalTime;
+    globalTime += 1;
+
+    table -> lastPinnedPos = table -> frames[lru] -> framePos;
+    closePageFile(&fh);
+    return RC_OK;
+
+}
+
 /*
  * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
  * pool to store the information.
@@ -253,7 +304,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
             return RC_WRITE_FAILED;
         bm->numWriteIO++;
     }
-    struct timeval tv;
     free(leastRecentlyUsedFrame->page->data);
 
     leastRecentlyUsedFrame->page->data = page->data;
@@ -338,7 +388,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
     // have to evict based on strategy
     if(bm -> strategy == RS_LRU){
-        return lruReplacement(bm, page, fh);
+        return LRU(bm, page, fh);
     }else if(bm -> strategy == RS_FIFO){
         return fifoReplacement(bm, page, fh);
     }else{
