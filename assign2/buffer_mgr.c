@@ -198,7 +198,7 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
-RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
+RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page){
     BM_PageTable *table = bm -> mgmtData;
 
     // check fixcounts array, if all non zero, cant do evict anyone
@@ -249,7 +249,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     return RC_OK;
 }
 
-RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
+RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page){
     BM_PageTable *table = bm -> mgmtData;
 
     // check fixcounts array, if all non zero, cant do evict anyone
@@ -363,9 +363,9 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
     // have to evict based on strategy
     if(bm -> strategy == RS_LRU){
-        return LRU(bm, page, bm -> fh);
+        return LRU(bm, page);
     }else if(bm -> strategy == RS_FIFO){
-        return FIFO(bm, page, bm -> fh);
+        return FIFO(bm, page);
     }else{
         printf("Not implemented this strategy\n");
         return RC_STRATEGY_NOT_IMPLEMENTED;
