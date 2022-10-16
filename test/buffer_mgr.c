@@ -278,7 +278,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         table -> lastPinnedPos = table -> frames[idx] -> framePos;
         table -> frames[idx] -> fixCount += 1;
         table -> fixCounts[idx] += 1;
-        page -> data = table -> frames[idx] -> data; // data field should point to the page frame
+        page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
         page -> pageNum = pageNum; // ?
 
         gettimeofday(&tv, NULL);
