@@ -89,8 +89,22 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
 
     BM_PageTable *table = bm -> mgmtData;
 
-    // go through each frame and see if dirty, if so write back
-
+    // go through each frame and see if dirty, if so write back, use frameContents, fixCounts, and dirtyFlags, fast lookups?
+    int i;
+    for(i = 0; i < bm -> numPages; i++){
+        if(table -> frameContents[i] == NO_PAGE){
+            continue;
+        }
+        if(table -> fixCounts[i] !=0){
+            printf("ERROR - Attempting to shutdown buffer pool that has a pinned page\n");
+            return RC_BUFFER_POOL_SHUTDOWN_ERROR;
+        }
+        if(table -> dirtyFlags[i]){ // dirty page, write back
+            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+        }
+        freeFrame(curFrame);
+    }
+    /*
     // todo, just check dirtyflags and fixcounts array? but should be same efficiency
     int i;
     for(i = 0; i < bm -> numPages; i++) {
@@ -108,6 +122,7 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
         freeFrame(curFrame);
 
     }
+    */
     freeTable(table);
 
     closePageFile(&fh);
