@@ -189,6 +189,31 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
+RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
+		const PageNumber pageNum){
+
+
+}
+
+
+
+/*
+ * Loop over the frames in order to find which one contains the page number pageNum and returns it
+ * If not found returns NULL
+ * This could be improved by using a hash table.
+ */
+BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum) {
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    for (int i = 0; i < bm->numPages; i++) {
+        if (framesHandle->frames[i] != NULL) {
+            if (framesHandle->frames[i]->page->pageNum == pageNum) {
+                return framesHandle->frames[i];
+            }
+        }
+    }
+    return (BM_PageFrame *) NULL;
+}
+
 /*
  * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
  * pool to store the information.
@@ -266,19 +291,11 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     return RC_OK;
 }
 
-RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
-		const PageNumber pageNum){
-    
-    int idx = getFrame(bm, page -> pageNum);
-    if(idx == -1){ // could not find page - error
-        return -3;
-    }
-    BM_PageTable *table = bm -> mgmtData;
-    BM_PageFrame *frame = table -> frames[idx];
-    
+RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
+           const PageNumber pageNum) {
 
-
-
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, pageNum);
     struct timeval tv;
 
     /* We found the page in the buffer */
@@ -357,9 +374,8 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     // CHANGE RETURN CODE
     closePageFile(&fh);
     return RC_WRITE_FAILED;
-
-
 }
+
 
 // Statistics Interface
 
