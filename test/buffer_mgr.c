@@ -345,7 +345,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     free(table -> frames[lru] -> page -> data);
     table -> frames[lru] -> page -> data = page -> data;
     table -> frames[lru] -> page -> pageNum = page -> pageNum;
-    table -> frameContents[lru] = pageNum;
+    table -> frameContents[lru] = page -> pageNum;
     table -> frames[lru] -> fixCount = 1;
     table -> fixCounts[lru] = 1;
     table -> frames[lru] -> dirtyFlag = false;
