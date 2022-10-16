@@ -287,26 +287,25 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         return RC_OK;
     }
 
-    /* Page is not in buffer, we will need to storage manager to get it from the disk */
-    char *filename = (char *) bm->pageFile;
+    // not in buffer pool
     SM_FileHandle fh;
-    if (openPageFile(filename, &fh) != RC_OK) {
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
-    ensureCapacity(pageNum + 1, &fh); // +1 because pages are numbered started from 0
 
-    page->data = malloc(PAGE_SIZE);
+    ensureCapacity(pageNum + 1, &fh);
 
-
-    RC read = readBlock(pageNum, &fh, page->data);
-    if (read != RC_OK) {
-        free(page->data);
+    page -> data = malloc(PAGE_SIZE);
+    if(readBlock(pageNum, &fh, page -> data) != RC_OK){
+        free(page -> data);
         closePageFile(&fh);
-        return read;
+        return -3;
     }
-    bm->numReadIO++;
 
-    page->pageNum = pageNum;
+    bm -> numReadIO += 1;
+    page -> pageNum = pageNum;
+
+    
 
     /* Looking if we still have place in the frames */
     if (table->numFramesUsed < bm->numPages) {
