@@ -88,8 +88,6 @@ void freeTable(BM_PageTable *table){
 // shutdown buffer pool, freeing everything and making sure dirty pages are written back. if any pinned, errors out.
 RC shutdownBufferPool(BM_BufferPool *const bm){
     // assumes buffer pool is init already
-    SM_FileHandle *fh = bm -> fh;
-
     BM_PageTable *table = bm -> mgmtData;
 
     // go through each frame and see if dirty, if so write back
@@ -112,7 +110,7 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     }
     freeTable(table);
 
-    closePageFile(&fh);
+    closePageFile(bm -> fh);
     return RC_OK;
 }
 
