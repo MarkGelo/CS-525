@@ -92,7 +92,8 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     // go through each frame and see if dirty, if so write back
 
     // todo, just check dirtyflags and fixcounts array? but should be same efficiency
-    for(int i = 0; i < bm -> numPages; i++) {
+    int i;
+    for(i = 0; i < bm -> numPages; i++) {
         BM_PageFrame *curFrame = table -> frames[i];
         if(curFrame == NULL){
             continue;
@@ -122,7 +123,8 @@ RC forceFlushPool(BM_BufferPool *const bm){
 
     // todo use dirtyFlags table and fixcounts
     BM_PageTable *table = bm -> mgmtData;
-    for(int i = 0; i < bm -> numPages; i++){
+    int i;
+    for(i = 0; i < bm -> numPages; i++){
         BM_PageFrame *curFrame = table -> frames[i];
         if(curFrame == NULL){
             continue;
@@ -146,7 +148,8 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
     BM_PageTable *table = bm -> mgmtData;
 
     PageNumber *frameContents = table -> frameContents;
-    for(int i = 0; i < bm -> numPages; i++){
+    int i;
+    for(i = 0; i < bm -> numPages; i++){
         if(frameContents[i] != NO_PAGE && frameContents[i] == pageNum){
             return i;
         }
