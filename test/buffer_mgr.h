@@ -7,6 +7,8 @@
 // Include bool DT
 #include "dt.h"
 
+#include <time.h> // remove?
+
 // Replacement Strategies
 typedef enum ReplacementStrategy {
 	RS_FIFO = 0,
@@ -30,13 +32,10 @@ typedef struct BM_BufferPool {
 	// manager needs for a buffer pool
 } BM_BufferPool;
 
-typedef struct BM_PageTable {
-    BM_PageFrame **frames;
-    int numFramesUsed;
-	PageNumber *frameContents; //array of PageNumbers
-	bool *dirtyFlags; // array for stats
-	int *fixCounts; // array
-} BM_PageTable;
+typedef struct BM_PageHandle {
+	PageNumber pageNum;
+	char *data;
+} BM_PageHandle;
 
 typedef struct BM_PageFrame {
     BM_PageHandle * page;
@@ -46,10 +45,13 @@ typedef struct BM_PageFrame {
 	int age; // FIFO
 } BM_PageFrame;
 
-typedef struct BM_PageHandle {
-	PageNumber pageNum;
-	char *data;
-} BM_PageHandle;
+typedef struct BM_PageTable {
+    BM_PageFrame **frames;
+    int numFramesUsed;
+	PageNumber *frameContents; //array of PageNumbers
+	bool *dirtyFlags; // array for stats
+	int *fixCounts; // array
+} BM_PageTable;
 
 // convenience macros
 #define MAKE_POOL()					\
