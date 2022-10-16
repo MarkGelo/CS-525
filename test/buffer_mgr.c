@@ -12,14 +12,24 @@
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
     table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
+    PageNumber *frameContents = malloc(sizeof(PageNumber) * numPages);
+	bool *dirtyFlags = malloc(sizeof(bool) * numPages);
+	int *fixCounts = malloc(sizeof(int) * numPages);
+
     int i;
     for (i = 0; i < numPages; i++) {
-        table -> frames[i] = NULL;
+        table -> frames[i] = NULL; // frame should be empty
+        frameContents[i] = -1; // since frame empty, shouldnt have anything in frame content
+        dirtyFlags[i] = false;
+        fixCounts[i] = 0;
     }
+    // for stats and easability
+    table -> frameContents = frameContents;
+    table -> dirtyFlags = dirtyFlags;
+    table -> fixCounts = fixCounts;
+
     table -> numFramesUsed = 0;
     table -> lastPinnedPos = -1;
-
-    // init other arrays
 
     return table;
 }
