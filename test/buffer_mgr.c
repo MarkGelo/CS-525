@@ -260,7 +260,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     leastRecentlyUsedFrame->page->pageNum = page->pageNum;
     leastRecentlyUsedFrame->fixCount = 1;
     leastRecentlyUsedFrame->dirtyFlag = 0;
-    gettimeofday(&tv, NULL);
     leastRecentlyUsedFrame->timeUsed = globalTime;
     globalTime += 1;
 
