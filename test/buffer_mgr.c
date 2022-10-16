@@ -39,15 +39,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     bm -> numReadIO = 0;
     
     // create page table , with numPages page frames
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table -> numFramesUsed = 0;
-    table -> lastPinnedPos = 0;
-    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
-    int i;
-    for(i = 0; i < numPages; i++){
-        table -> frames[i] = NULL; // all page frames should initially be empty
-    }
-    bm -> mgmtData = *table;
+    bm -> mgmtData = createFrames(numPages);
 
     return RC_OK;
 }
