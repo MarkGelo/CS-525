@@ -12,14 +12,18 @@
  * Create an empty frame container with numberOfFrames frames
  * The result need to be freed before the end of the program
  */
-BM_PageTable *createFrames(int numberOfFrames) {
+BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
-    for (int i = 0; i < numberOfFrames; i++) {
-        table->frames[i] = NULL;
+    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
+    int i;
+    for (i = 0; i < numberOfFrames; i++) {
+        table -> frames[i] = NULL;
     }
-    table->numFramesUsed = 0;
-    table->lastPinnedPos = -1;
+    table -> numFramesUsed = 0;
+    table -> lastPinnedPos = -1;
+
+    // init other arrays
+    
     return table;
 }
 
@@ -43,28 +47,6 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 
     return RC_OK;
 }
-
-/*
-// Buffer Manager Interface Pool Handling
-RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
-                  const int numPages, ReplacementStrategy strategy,
-                  void *stratData) {
-    // CHECK IF FILE EXISTS
-    if (access(pageFileName, F_OK) == 0) {
-        // file exists
-        initStorageManager();
-        bm->pageFile = (char *) pageFileName;
-        bm->numPages = numPages;
-        bm->mgmtData = createFrames(numPages);
-        bm->strategy = strategy;
-        bm->numReadIO = 0;
-        bm->numWriteIO = 0;
-
-        return RC_OK;
-    }
-    return RC_FILE_NOT_FOUND;
-}
-*/
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
