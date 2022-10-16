@@ -431,7 +431,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(bm -> strategy == RS_LRU){
         return LRU(bm, page, fh);
     }else if(bm -> strategy == RS_FIFO){
-        return FIFO(bm, page, fh);
+        return fifoReplacement(bm, page, fh);
     }else{
         printf("Not implemented this strategy");
         return -3;
