@@ -183,7 +183,7 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     table -> frames[idx] -> dirtyFlag = false;
 
     closePageFile(&fh);
-    return RC_OK
+    return RC_OK;
 }
 
 
