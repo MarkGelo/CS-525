@@ -306,15 +306,34 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     page -> pageNum = pageNum;
 
 
-    printf("here1");
+    /* Looking if we still have place in the frames */
+    if (table->numFramesUsed < bm->numPages) {
+        int availablePosition = table->lastPinnedPos + 1;
+
+        BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
+        frame->page = malloc(sizeof(BM_PageHandle));
+
+        frame->page->data = page->data;
+        frame->fixCount = 1;
+        frame->dirtyFlag = FALSE;
+        frame->framePos = availablePosition;
+        frame->page->pageNum = pageNum;
+        gettimeofday(&tv, NULL);
+        frame->timeUsed = tv.tv_usec;
+        table->frames[availablePosition] = frame;
+        table->numFramesUsed++;
+        table->lastPinnedPos = availablePosition;
+        closePageFile(&fh);
+        return RC_OK;
+    }
+
+    /*
     // if free space in table
     if(table -> numFramesUsed < bm -> numPages){
         // iterate until find free spot
-        printf("here");
         int i;
         for(i = 0; i < bm -> numPages; i++){
             if(table -> frames[i] == NULL){
-                printf("found one");
                 BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
                 frame -> page = malloc(sizeof(BM_PageHandle));
                 frame -> page -> data = page -> data;
@@ -337,7 +356,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
             }
         }
     }
-
+    */
 
 
 
