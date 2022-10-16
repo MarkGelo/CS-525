@@ -62,7 +62,7 @@ void freeFrame(BM_PageFrame *curFrame){
     //free(curFrame -> dirtyFlag);
     //free(curFrame -> fixCount);
     //free(curFrame -> age);
-    //free(curFrame -> timeUsed);
+    //free(curFrame -> timeAccessed);
     free(curFrame -> page);
     free(curFrame);
 
@@ -222,9 +222,9 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     }
 
     int first = 0; // opposite of lru, use the one recently used, FIFO. cant evict fixcount != 0, so not that simple FIFO
-    //printf("Mine: %d", table -> frames[first] -> timeUsed);
+    //printf("Mine: %d", table -> frames[first] -> timeAccessed);
     for(i = 1; i < bm -> numPages; i++){
-        //printf(" %d", table -> frames[i] -> timeUsed);
+        //printf(" %d", table -> frames[i] -> timeAccessed);
         if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
@@ -249,7 +249,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     table -> fixCounts[first] = 1;
     table -> frames[first] -> dirtyFlag = false;
     table -> dirtyFlags[first] = false;
-    table -> frames[first] -> timeUsed = globalTime;
+    table -> frames[first] -> timeAccessed = globalTime;
     table -> frames[first] -> age = globalTime;
     globalTime += 1;
 
@@ -279,7 +279,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
         if(table -> frames[i] -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
-        if(table -> frames[i] -> timeUsed < table -> frames[lru] -> timeUsed){
+        if(table -> frames[i] -> timeAccessed < table -> frames[lru] -> timeAccessed){
             lru = i;
         }
     }
@@ -299,7 +299,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     table -> fixCounts[lru] = 1;
     table -> frames[lru] -> dirtyFlag = false;
     table -> dirtyFlags[lru] = false;
-    table -> frames[lru] -> timeUsed = globalTime;
+    table -> frames[lru] -> timeAccessed = globalTime;
     table -> frames[lru] -> age = globalTime;
     globalTime += 1;
 
@@ -322,7 +322,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
         table -> frameContents[idx] = pageNum;
 
-        table -> frames[idx] -> timeUsed = globalTime;
+        table -> frames[idx] -> timeAccessed = globalTime;
         table -> frames[idx] -> age = globalTime;
         globalTime += 1;
 
@@ -360,7 +360,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 table -> frameContents[i] = pageNum;
                 frame -> page -> pageNum = pageNum;
 
-                frame -> timeUsed = globalTime;
+                frame -> timeAccessed = globalTime;
                 frame -> age = globalTime;
                 globalTime += 1;
 

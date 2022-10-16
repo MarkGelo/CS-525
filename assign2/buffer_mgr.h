@@ -41,7 +41,7 @@ typedef struct BM_PageFrame {
     bool dirtyFlag;
     int fixCount;
 	int age; // FIFO
-    int timeUsed; // LRU
+    int timeAccessed; // LRU
 } BM_PageFrame;
 
 typedef struct BM_PageTable {
