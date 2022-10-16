@@ -243,7 +243,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     int lru = 0;
     // iterate till find least recently used
     for(i = 1; i < bm -> numPages; i++){
-        BM_PageFrame curFrame = table -> frames[i];
+        BM_PageFrame *curFrame = table -> frames[i];
         if(curFrame -> fixCount != 0){ // cant evict if not fixcount 0 
             continue;
         }
