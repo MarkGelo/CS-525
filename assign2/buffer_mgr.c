@@ -142,6 +142,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
 
 int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
     BM_PageTable *table = bm -> mgmtData;
+
     PageNumber *frameContents = table -> frameContents;
     for(int i = 0; i < bm -> numPages; i++){
         if(frameContents[i] != NO_PAGE && frameContents[i] == pageNum){
@@ -358,7 +359,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if (table -> numFramesUsed < bm -> numPages) {
         int i;
         for(i = 0; i < bm -> numPages; i++){
-            if(table -> frames[i] == NULL){ // free space
+            if(table -> frameContents[i] == NO_PAGE){ // free space
                 BM_PageFrame *frame = MAKE_PAGE_FRAME();
                 frame -> page = MAKE_PAGE_HANDLE();
                 frame -> page -> data = page -> data;
@@ -381,7 +382,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
             }
         }
     }
-
 
     // have to evict based on strategy
     if(bm -> strategy == RS_LRU){
