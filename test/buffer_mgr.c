@@ -72,7 +72,7 @@ BM_PageTable *createFrames(int numberOfFrames) {
     }
     table->numFramesUsed = 0;
     table->lastPinnedPos = -1;
-    return frames;
+    return table;
 }
 
 
