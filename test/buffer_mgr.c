@@ -268,7 +268,9 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
 
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
-            
+
+    struct timeval tv; // DEL?
+
     BM_PageTable *table = bm -> mgmtData;
     int idx = getFrame(bm, page -> pageNum);
     // dont care if not found page, if not found then add later on
@@ -279,7 +281,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         page -> data = table -> frames[idx] -> data; // data field should point to the page frame
         page -> pageNum = table -> frames[idx] -> page -> pageNum; // ?
 
-        struct timeval tv;
         gettimeofday(&tv, NULL);
         table -> frames[idx] -> timeUsed = tv.tv_usec;
 
