@@ -336,33 +336,19 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     }
 
 
-
-
-    /* If we don't have any place */
-
-    switch (bm->strategy) {
-        case RS_FIFO:
-            return fifoReplacement(bm, page, fh);
-        case RS_CLOCK:
-            break;
-        case RS_LRU:
-            return lruReplacement(bm, page, fh);
-        case RS_LFU:
-            break;
-        case RS_LRU_K:
-            break;
-        default:
-            // CHANGE RETURN CODE
-            return RC_WRITE_FAILED;
+    // have to evict based on strategy
+    if(bm -> strategy == RS_LRU){
+        return lruReplacement(bm, page, fh);
+    }else if(bm -> strategy == RS_FIFO){
+        return fifoReplacement(bm, page, fh);
+    }else{
+        printf("Not implemented this strategy");
+        return -3;
     }
 
-
-    /*We didn't find any evicable page */
-    // CHANGE RETURN CODE
+    // somehow couldnt find a place so error
     closePageFile(&fh);
-    return RC_WRITE_FAILED;
-
-
+    return -3;
 }
 
 // Statistics Interface
