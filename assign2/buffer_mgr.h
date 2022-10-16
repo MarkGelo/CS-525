@@ -54,11 +54,14 @@ typedef struct BM_PageTable {
 } BM_PageTable;
 
 // convenience macros
-#define MAKE_POOL()					\
+#define MAKE_POOL()						\
 		((BM_BufferPool *) malloc (sizeof(BM_BufferPool)))
 
 #define MAKE_PAGE_HANDLE()				\
 		((BM_PageHandle *) malloc (sizeof(BM_PageHandle)))
+
+#define MAKE_PAGE_FRAME()				\
+		((BM_PageFrame *) malloc (sizeof(BM_PageFrame)))
 
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 

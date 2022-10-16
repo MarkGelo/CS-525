@@ -313,12 +313,13 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
     BM_PageTable *table = bm -> mgmtData;
     int idx = getFrame(bm, pageNum);
+    page -> pageNum = pageNum; // buffer mgr responsible to set pageNum field of the page handle passed to the method
+
     // dont care if not found page, if not found then add later on
     if(idx != -1){ // found alreadyin table
         table -> frames[idx] -> fixCount += 1;
         table -> fixCounts[idx] += 1;
         page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
-        page -> pageNum = pageNum; // ?
         table -> frameContents[idx] = pageNum;
 
         table -> frames[idx] -> timeUsed = globalTime;
@@ -342,18 +343,15 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         closePageFile(&fh);
         return -3;
     }
-
     bm -> numReadIO += 1;
-    page -> pageNum = pageNum;
-
 
     // if free space in table
     if (table -> numFramesUsed < bm -> numPages) {
         int i;
         for(i = 0; i < bm -> numPages; i++){
-            if(table -> frames[i] == NULL){
-                BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
-                frame -> page = malloc(sizeof(BM_PageHandle));
+            if(table -> frames[i] == NULL){ // free space
+                BM_PageFrame *frame = MAKE_PAGE_FRAME();
+                frame -> page = MAKE_PAGE_HANDLE();
                 frame -> page -> data = page -> data;
                 frame -> fixCount = 1;
                 table -> fixCounts[i] = 1;
