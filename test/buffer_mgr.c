@@ -114,6 +114,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
         if(curFrame -> dirtyFlag && curFrame -> fixCount == 0){ // only if fix count 0 and dirty, then write
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
             curFrame -> dirtyFlag = false;
+            table -> dirtyFlags[i] = false;
             bm -> numWriteIO += 1;
         }
     }
@@ -188,41 +189,6 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
 
     closePageFile(&fh);
     return RC_OK;
-}
-
-/*
- * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
- * pool to store the information.
- * The strategy used to find a place is FIFO
- */
-RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh) {
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    for (int i = 1; i < bm->numPages; i++) { // i = 1 cuz want lastpinnedpos + 1, at the very least. If cant evict that one, then go to next one, +2, +3 and so on
-        int position = (framesHandle->lastPinnedPos + i) % bm->numPages;
-        BM_PageFrame *frame = framesHandle->frames[position];
-        /* The frame can be evicted */
-        if (frame->fixCount == 0) {
-            if (frame->dirtyFlag == TRUE) {
-                if (writeBlock(frame->page->pageNum, &fh, frame->page->data) != RC_OK)
-                    return RC_WRITE_FAILED;
-                bm->numWriteIO++;
-            }
-            free(frame->page->data);
-            frame->page->data = page->data;
-            frame->page->pageNum = page->pageNum;
-            frame->fixCount = 1;
-            frame->dirtyFlag = 0;
-            frame -> timeUsed = globalTime;
-            frame -> age = globalTime;
-            globalTime += 1;
-            frame->framePos = position;
-            framesHandle->lastPinnedPos = position;
-            closePageFile(&fh);
-            return RC_OK;
-        }
-    }
-    // CHANGE RETURN CODE
-    return RC_WRITE_FAILED;
 }
 
 RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
@@ -436,21 +402,8 @@ PageNumber *getFrameContents(BM_BufferPool *const bm) {
 }
 /* Results need to be freed after use */
 bool *getDirtyFlags(BM_BufferPool *const bm) {
-    bool *array = malloc(sizeof(bool) * bm->numPages);
-    BM_PageTable *frames = bm->mgmtData;
-    for (int i = 0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = frames->frames[i];
-        if (frame != NULL) {
-            array[i] = frame->dirtyFlag;
-        } else
-            array[i] = FALSE;
-    }
-    return array;
-
-
-    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    return framesHandle -> dirtyFlags;
+    BM_PageTable *table = bm->mgmtData;
+    return table -> dirtyFlags;
 }
 /* Results need to be freed after use */
 int *getFixCounts(BM_BufferPool *const bm) {
