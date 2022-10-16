@@ -20,7 +20,7 @@ BM_PageTable *initPageTable(int numPages) {
     int i;
     for(i = 0; i < numPages; i++) {
         table -> frames[i] = NULL; // frame should be empty
-        frameContents[i] = -1; // since frame empty, shouldnt have anything in frame content
+        frameContents[i] = NO_PAGE; // since frame empty, shouldnt have anything in frame content
         dirtyFlags[i] = false;
         fixCounts[i] = 0;
     }
@@ -307,6 +307,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         table -> fixCounts[idx] += 1;
         page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
         page -> pageNum = pageNum; // ?
+        table -> frameContents[idx] = pageNum;
 
         table -> frames[idx] -> timeUsed = globalTime;
         table -> frames[idx] -> age = globalTime;
@@ -384,21 +385,8 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
 /* Results need to be freed after use */
 PageNumber *getFrameContents(BM_BufferPool *const bm) {
-    BM_PageTable *frames = bm->mgmtData;
-    PageNumber *arrayOfPageNumber = malloc(sizeof(PageNumber) * bm->numPages);
-    for (int i = 0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = frames->frames[i];
-        if (frame != NULL)
-            arrayOfPageNumber[i] = frame->page->pageNum;
-        else
-            arrayOfPageNumber[i] = NO_PAGE;
-    }
-    return arrayOfPageNumber;
-
-
-    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    return framesHandle -> frameContents;
+    BM_PageTable *table =  bm->mgmtData;
+    return table -> frameContents;
 }
 /* Results need to be freed after use */
 bool *getDirtyFlags(BM_BufferPool *const bm) {
