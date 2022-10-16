@@ -57,6 +57,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     return RC_OK;
 }
 
+// shutdown buffer pool, freeing everything and making sure dirty pages are written back. if any pinned, errors out.
 RC shutdownBufferPool(BM_BufferPool *const bm){
     // assumes buffer pool is init already
     SM_FileHandle fh;
@@ -71,31 +72,49 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     // todo, just check dirtyflags and fixcounts array? but should be same efficiency
     for (int i = 0; i < bm -> numPages; i++) {
         BM_PageFrame *curFrame = table -> frames[i];
-        if (curFrame != NULL) {
-            if (curFrame -> fixCount != 0) {
-                printf("ERROR - Attempting to shutdown buffer pool that has a pinned page");
-                return -3;
-            }
-            if (curFrame -> dirtyFlag == true) {
-                writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
-            }
-            free(curFrame -> page -> data);
-            free(curFrame -> page);
-            free(curFrame);
+        if (curFrame == NULL){
+            continue;
         }
+        if (curFrame -> fixCount != 0) {
+            printf("ERROR - Attempting to shutdown buffer pool that has a pinned page");
+            return -3;
+        }
+        if (curFrame -> dirtyFlag == true) {
+            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+        }
+        free(curFrame -> page -> data);
+        free(curFrame -> page);
+        free(curFrame);
+
     }
     free(table -> frames);
     free(table -> frameContents);
     free(table -> dirtyFlags);
     free(table -> fixCounts);
     free(table);
-    
+
     closePageFile(&fh);
     return RC_OK;
 }
 
 /*
-RC shutdownBufferPool(BM_BufferPool *const bm) {
+RC forceFlushPool(BM_BufferPool *const bm){
+    SM_FileHandle fh;
+    if (openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
+    BM_PageTable *table = bm -> mgmtData;
+    for(int i = 0; i < bm -> numPages; i++){
+        BM_PageFrame *curFrame = table -> frames[i];
+
+    }
+}
+
+*/
+
+
+RC forceFlushPool(BM_BufferPool *const bm) {
     char *filename = (char *) bm->pageFile;
     SM_FileHandle fh;
     if (openPageFile(filename, &fh) != RC_OK) {
@@ -105,25 +124,16 @@ RC shutdownBufferPool(BM_BufferPool *const bm) {
     for (int i = 0; i < bm->numPages; i++) {
         BM_PageFrame *frame = frames->frames[i];
         if (frame != NULL) {
-            if (frame->fixCount != 0) {
-                //CHANGE RETURN CODE
-                return RC_WRITE_FAILED;
-            }
             if (frame->dirtyFlag == TRUE) {
                 writeBlock(frame->page->pageNum, &fh, frame->page->data);
+                frame->dirtyFlag = FALSE;
+                bm->numWriteIO++;
             }
-            free(frame->page->data);
-            free(frame->page);
-            free(frame);
         }
     }
-    free(frames->frames);
-    free(frames);
     closePageFile(&fh);
     return RC_OK;
 }
-*/
-
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
@@ -215,27 +225,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     leastRecentlyUsedFrame->timeUsed = tv.tv_usec;
 
     framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
-    closePageFile(&fh);
-    return RC_OK;
-}
-
-RC forceFlushPool(BM_BufferPool *const bm) {
-    char *filename = (char *) bm->pageFile;
-    SM_FileHandle fh;
-    if (openPageFile(filename, &fh) != RC_OK) {
-        return RC_FILE_NOT_FOUND;
-    }
-    BM_PageTable *frames = bm->mgmtData;
-    for (int i = 0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = frames->frames[i];
-        if (frame != NULL) {
-            if (frame->dirtyFlag == TRUE) {
-                writeBlock(frame->page->pageNum, &fh, frame->page->data);
-                frame->dirtyFlag = FALSE;
-                bm->numWriteIO++;
-            }
-        }
-    }
     closePageFile(&fh);
     return RC_OK;
 }
