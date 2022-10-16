@@ -269,6 +269,64 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
 
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, pageNum);
+    struct timeval tv;
+
+    /* We found the page in the buffer */
+    if (foundFrame != NULL) {
+        page->data = foundFrame->page->data;
+        page->pageNum = pageNum;
+        foundFrame->fixCount++;
+        gettimeofday(&tv, NULL);
+        foundFrame->timeUsed = tv.tv_usec;
+        framesHandle->lastPinnedPos = foundFrame->framePos;
+        return RC_OK;
+    }
+
+    /* Page is not in buffer, we will need to storage manager to get it from the disk */
+    char *filename = (char *) bm->pageFile;
+    SM_FileHandle fh;
+    if (openPageFile(filename, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+    ensureCapacity(pageNum + 1, &fh); // +1 because pages are numbered started from 0
+
+    page->data = malloc(PAGE_SIZE);
+
+
+    RC read = readBlock(pageNum, &fh, page->data);
+    if (read != RC_OK) {
+        free(page->data);
+        closePageFile(&fh);
+        return read;
+    }
+    bm->numReadIO++;
+
+    page->pageNum = pageNum;
+
+    /* Looking if we still have place in the frames */
+    if (framesHandle->numFramesUsed < bm->numPages) {
+        int availablePosition = framesHandle->lastPinnedPos + 1;
+
+        BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
+        frame->page = malloc(sizeof(BM_PageHandle));
+
+        frame->page->data = page->data;
+        frame->fixCount = 1;
+        frame->dirtyFlag = FALSE;
+        frame->framePos = availablePosition;
+        frame->page->pageNum = pageNum;
+        gettimeofday(&tv, NULL);
+        frame->timeUsed = tv.tv_usec;
+        framesHandle->frames[availablePosition] = frame;
+        framesHandle->numFramesUsed++;
+        framesHandle->lastPinnedPos = availablePosition;
+        closePageFile(&fh);
+        return RC_OK;
+    }
+
+    /*
     struct timeval tv; // DEL?
 
     BM_PageTable *table = bm -> mgmtData;
@@ -299,7 +357,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(readBlock(pageNum, &fh, page -> data) != RC_OK){
         free(page -> data);
         closePageFile(&fh);
-        printf("here");
         return -3;
     }
 
@@ -334,6 +391,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
             }
         }
     }
+    */
 
     /* If we don't have any place */
 
