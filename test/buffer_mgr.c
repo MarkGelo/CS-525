@@ -140,7 +140,7 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
 }
 
 // first iterate over pagetable, checking if page is in it, if not error, if so, mark it as dirty
-RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
+RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
         return -3;
@@ -151,7 +151,7 @@ RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
 }
 
 // same thing as markDirty, but unpin it, added an error check. if fixcount already 0, dont unpin, aka -1 it, as may case errors later on
-RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page){
+RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
         return -3;
@@ -166,6 +166,26 @@ RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page){
     }
     return RC_OK;
 }
+
+// write back to disk, if found. mark as not dirty cuz written back
+RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
+    int idx = getFrame(bm, page -> pageNum);
+    if(idx == -1){ // could not find page - error
+        return -3;
+    }
+    SM_FileHandle fh;
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+    BM_PageTable *table = bm -> mgmtData;
+    writeBlock(table -> frames[idx] -> page -> pageNum, &fh, table -> frames[idx] -> page -> data);
+    bm -> numWriteIO += 1;
+    table -> frames[idx] -> dirtyFlag = false;
+
+    closePageFile(&fh);
+    return RC_OK
+}
+
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
@@ -183,45 +203,6 @@ BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum
     }
     return (BM_PageFrame *) NULL;
 }
-
-/*
-RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-        foundFrame->fixCount--;
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
-}
-*/
-
-RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-
-        char *filename = (char *) bm->pageFile;
-        SM_FileHandle fh;
-        if (openPageFile(filename, &fh) != RC_OK) {
-            return RC_FILE_NOT_FOUND;
-        }
-
-        if (writeBlock(page->pageNum, &fh, foundFrame->page->data) != RC_OK) {
-            return RC_WRITE_FAILED;
-        }
-        bm->numWriteIO++;
-        foundFrame->dirtyFlag = 0;
-        closePageFile(&fh);
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
-}
-
-
-
 
 /*
  * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
