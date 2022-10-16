@@ -109,7 +109,7 @@ RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHa
                     return RC_WRITE_FAILED;
                 bm->numWriteIO++;
             }
-            free(frame->page->data);
+            //free(frame->page->data);
             frame->page->data = page->data;
             frame->page->pageNum = page->pageNum;
             frame->fixCount = 1;
@@ -155,7 +155,7 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
         bm->numWriteIO++;
     }
     struct timeval tv;
-    free(leastRecentlyUsedFrame->page->data);
+    //free(leastRecentlyUsedFrame->page->data);
 
     leastRecentlyUsedFrame->page->data = page->data;
     leastRecentlyUsedFrame->page->pageNum = page->pageNum;
@@ -186,13 +186,13 @@ RC shutdownBufferPool(BM_BufferPool *const bm) {
             if (frame->dirtyFlag == TRUE) {
                 writeBlock(frame->page->pageNum, &fh, frame->page->data);
             }
-            free(frame->page->data);
-            free(frame->page);
-            free(frame);
+            //free(frame->page->data);
+            //free(frame->page);
+            //free(frame);
         }
     }
-    free(frames->frames);
-    free(frames);
+    //free(frames->frames);
+    //free(frames);
     closePageFile(&fh);
     return RC_OK;
 }
@@ -295,7 +295,7 @@ RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
 
     RC read = readBlock(pageNum, &fh, page->data);
     if (read != RC_OK) {
-        free(page->data);
+        //free(page->data);
         closePageFile(&fh);
         return read;
     }
