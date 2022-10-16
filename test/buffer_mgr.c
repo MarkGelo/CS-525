@@ -147,6 +147,7 @@ RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page){
     }
     BM_PageTable *table = bm -> mgmtData;
     table -> frames[idx] -> dirtyFlag = true; // mark that page as dirty
+    table -> dirtyFlags[idx] = true; // also update array
     return RC_OK;
 }
 
@@ -163,6 +164,7 @@ RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page){
         // just leave it at 0
     }else{
         table -> frames[idx] -> fixCount -= 1; // unpin, -1 to fixCount.
+        table -> fixCounts[idx] -= 1; // also update array
     }
     return RC_OK;
 }
@@ -181,6 +183,7 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     writeBlock(table -> frames[idx] -> page -> pageNum, &fh, table -> frames[idx] -> page -> data);
     bm -> numWriteIO += 1;
     table -> frames[idx] -> dirtyFlag = false;
+    table -> dirtyFlags[idx] = false; // also update array
 
     closePageFile(&fh);
     return RC_OK;
