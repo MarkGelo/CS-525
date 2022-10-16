@@ -310,9 +310,9 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if (table -> numFramesUsed < bm -> numPages) {
         int i;
         for(i = 0; i < bm -> numPages; i++){
-            print("here");
+            printf("here");
         }
-        
+
         int availablePosition = table->lastPinnedPos + 1;
 
         BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
