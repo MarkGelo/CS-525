@@ -8,6 +8,8 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
+int globalTime = 0; // keep time, used for keeping time when frames were used
+
 // initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
@@ -211,7 +213,8 @@ RC fifoReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHa
             frame->page->pageNum = page->pageNum;
             frame->fixCount = 1;
             frame->dirtyFlag = 0;
-            time(&frame->timeUsed);
+            frame -> timeUsed = globalTime;
+            globalTime += 1;
             frame->framePos = position;
             framesHandle->lastPinnedPos = position;
             closePageFile(&fh);
@@ -234,7 +237,7 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
         BM_PageFrame *frame = framesHandle->frames[i];
         /* Searching the least recently used frame from the one that can be evicted (i.e fixCount = 0) */
         if (frame->fixCount == 0) {
-            if (difftime(leastRecentlyUsedFrame->timeUsed, frame->timeUsed) >= 0) {
+            if (frame->timeUsed < leastRecentlyUsedFrame->timeUsed) {
                 leastRecentlyUsedFrame = frame;
             }
         }
@@ -259,7 +262,8 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     leastRecentlyUsedFrame->fixCount = 1;
     leastRecentlyUsedFrame->dirtyFlag = 0;
     gettimeofday(&tv, NULL);
-    leastRecentlyUsedFrame->timeUsed = tv.tv_usec;
+    leastRecentlyUsedFrame->timeUsed = globalTime;
+    globalTime += 1;
 
     framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
     closePageFile(&fh);
@@ -281,8 +285,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         page -> data = table -> frames[idx] -> page -> data; // data field should point to the page frame
         page -> pageNum = pageNum; // ?
 
-        gettimeofday(&tv, NULL);
-        table -> frames[idx] -> timeUsed = tv.tv_usec;
+        table -> frames[idx] -> timeUsed = globalTime;
 
         return RC_OK;
     }
@@ -322,8 +325,8 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 frame -> framePos = i; // delet
                 frame -> page -> pageNum = pageNum;
 
-                gettimeofday(&tv, NULL);
-                frame -> timeUsed = tv.tv_usec;
+                frame -> timeUsed = globalTime;
+                globalTime += 1;
 
                 table -> frames[i] = frame;
                 table -> numFramesUsed += 1;

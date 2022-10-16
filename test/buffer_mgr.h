@@ -42,7 +42,7 @@ typedef struct BM_PageFrame {
     int framePos;
     bool dirtyFlag;
     int fixCount;
-    time_t timeUsed; // LRU
+    int timeUsed; // LRU
 } BM_PageFrame;
 
 typedef struct BM_PageTable {
