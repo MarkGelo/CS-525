@@ -97,6 +97,7 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     return RC_OK;
 }
 
+// all dirty pages are written back, ONLY if fix count 0
 RC forceFlushPool(BM_BufferPool *const bm){
     SM_FileHandle fh;
     if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
@@ -109,7 +110,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
         if(curFrame == NULL){
             continue;
         }
-        if(curFrame -> dirtyFlag){
+        if(curFrame -> dirtyFlag && curFrame -> fixCount == 0){ // only if fix count 0 and dirty, then write
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
             curFrame -> dirtyFlag = false;
             bm -> numWriteIO += 1;
@@ -121,28 +122,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
 }
 
 
-/*
-RC forceFlushPool(BM_BufferPool *const bm) {
-    char *filename = (char *) bm->pageFile;
-    SM_FileHandle fh;
-    if (openPageFile(filename, &fh) != RC_OK) {
-        return RC_FILE_NOT_FOUND;
-    }
-    BM_PageTable *frames = bm->mgmtData;
-    for (int i = 0; i < bm->numPages; i++) {
-        BM_PageFrame *frame = frames->frames[i];
-        if (frame != NULL) {
-            if (frame->dirtyFlag == TRUE) {
-                writeBlock(frame->page->pageNum, &fh, frame->page->data);
-                frame->dirtyFlag = FALSE;
-                bm->numWriteIO++;
-            }
-        }
-    }
-    closePageFile(&fh);
-    return RC_OK;
-}
-*/
+
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
