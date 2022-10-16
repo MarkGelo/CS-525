@@ -454,6 +454,9 @@ bool *getDirtyFlags(BM_BufferPool *const bm) {
 }
 /* Results need to be freed after use */
 int *getFixCounts(BM_BufferPool *const bm) {
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    return framesHandle -> fixCounts;
+    
     int *array = malloc(sizeof(int) * bm->numPages);
     BM_PageTable *frames = bm->mgmtData;
     for (int i = 0; i < bm->numPages; i++) {
