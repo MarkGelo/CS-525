@@ -315,9 +315,10 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 frame -> page = malloc(sizeof(BM_PageHandle));
                 frame -> page -> data = page -> data;
                 frame -> fixCount = 1;
-                table -> fixCounts[idx] = 1;
+                //table -> fixCounts[idx] = 1;
                 frame -> dirtyFlag = false;
-                table -> dirtyFlags[idx] = false;
+                //table -> dirtyFlags[idx] = false;
+                //table -> frameContents[idx] = pageNum;
                 frame -> framePos = i; // delet
                 frame -> page -> pageNum = pageNum;
 
