@@ -1,10 +1,63 @@
-#include "dberror.h"
-#include "buffer_mgr.h"
-#include "storage_mgr.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
 
+#include "dberror.h"
+#include "storage_mgr.h"
+#include "buffer_mgr.h"
+
+// buffer manager interface pool handling
+RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
+		const int numPages, ReplacementStrategy strategy,
+		void *stratData){
+    
+    if (access(pageFileName, F_OK) != 0){ // file should exists already
+        return RC_FILE_NOT_FOUND;
+    }
+
+    bm -> pageFile = (char *) pageFileName;
+    bm -> numPages = numPages;
+    bm -> strategy = strategy;
+    bm -> numWriteIO = 0;
+    bm -> numReadIO = 0;
+    
+    // create page table , with numPages page frames
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table -> numFramesUsed = 0;
+    table -> lastPinnedPos = 0;
+    table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
+    int i;
+    for(i = 0; i < numPages; i++){
+        table -> frames[i] = NULL; // all page frames should initially be empty
+    }
+    bm -> mgmtData = table;
+
+    return RC_OK;
+}
+
+/*
+// Buffer Manager Interface Pool Handling
+RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
+                  const int numPages, ReplacementStrategy strategy,
+                  void *stratData) {
+    // CHECK IF FILE EXISTS
+    if (access(pageFileName, F_OK) == 0) {
+        // file exists
+        initStorageManager();
+        bm->pageFile = (char *) pageFileName;
+        bm->numPages = numPages;
+        bm->mgmtData = createFrames(numPages);
+        bm->strategy = strategy;
+        bm->numReadIO = 0;
+        bm->numWriteIO = 0;
+
+        return RC_OK;
+    }
+    return RC_FILE_NOT_FOUND;
+}
+*/
 
 /*
  * Create an empty frame container with numberOfFrames frames
@@ -114,26 +167,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
     closePageFile(&fh);
     return RC_OK;
-}
-
-// Buffer Manager Interface Pool Handling
-RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
-                  const int numPages, ReplacementStrategy strategy,
-                  void *stratData) {
-    // CHECK IF FILE EXISTS
-    if (access(pageFileName, F_OK) == 0) {
-        // file exists
-        initStorageManager();
-        bm->pageFile = (char *) pageFileName;
-        bm->numPages = numPages;
-        bm->mgmtData = createFrames(numPages);
-        bm->strategy = strategy;
-        bm->numReadIO = 0;
-        bm->numWriteIO = 0;
-
-        return RC_OK;
-    }
-    return RC_FILE_NOT_FOUND;
 }
 
 RC shutdownBufferPool(BM_BufferPool *const bm) {
