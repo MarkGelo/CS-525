@@ -306,7 +306,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     page -> pageNum = pageNum;
 
 
-
+    printf("here1");
     // if free space in table
     if(table -> numFramesUsed < bm -> numPages){
         // iterate until find free spot
