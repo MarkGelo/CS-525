@@ -39,6 +39,20 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 }
 */
 
+/*
+ * Create an empty frame container with numberOfFrames frames
+ * The result need to be freed before the end of the program
+ */
+BM_PageTable *createFrames(int numberOfFrames) {
+    BM_PageTable *table = malloc(sizeof(BM_PageTable));
+    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
+    for (int i = 0; i < numberOfFrames; i++) {
+        table->frames[i] = NULL;
+    }
+    table->numFramesUsed = 0;
+    table->lastPinnedPos = -1;
+    return table;
+}
 
 // Buffer Manager Interface Pool Handling
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
@@ -58,21 +72,6 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
         return RC_OK;
     }
     return RC_FILE_NOT_FOUND;
-}
-
-/*
- * Create an empty frame container with numberOfFrames frames
- * The result need to be freed before the end of the program
- */
-BM_PageTable *createFrames(int numberOfFrames) {
-    BM_PageTable *table = malloc(sizeof(BM_PageTable));
-    table->frames = malloc(sizeof(BM_PageFrame *) * numberOfFrames);
-    for (int i = 0; i < numberOfFrames; i++) {
-        table->frames[i] = NULL;
-    }
-    table->numFramesUsed = 0;
-    table->lastPinnedPos = -1;
-    return table;
 }
 
 
