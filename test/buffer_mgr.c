@@ -315,10 +315,10 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 frame -> page = malloc(sizeof(BM_PageHandle));
                 frame -> page -> data = page -> data;
                 frame -> fixCount = 1;
-                //table -> fixCounts[idx] = 1;
+                table -> fixCounts[i] = 1;
                 frame -> dirtyFlag = false;
-                //table -> dirtyFlags[idx] = false;
-                //table -> frameContents[idx] = pageNum;
+                table -> dirtyFlags[i] = false;
+                table -> frameContents[i] = pageNum;
                 frame -> framePos = i; // delet
                 frame -> page -> pageNum = pageNum;
 
@@ -335,36 +335,6 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         }
     }
 
-    /*
-    // if free space in table
-    if(table -> numFramesUsed < bm -> numPages){
-        // iterate until find free spot
-        int i;
-        for(i = 0; i < bm -> numPages; i++){
-            if(table -> frames[i] == NULL){
-                BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
-                frame -> page = malloc(sizeof(BM_PageHandle));
-                frame -> page -> data = page -> data;
-                frame -> fixCount = 1;
-                table -> fixCounts[idx] = 1;
-                frame -> dirtyFlag = false;
-                table -> dirtyFlags[idx] = false;
-                frame -> framePos = i; // delet
-                frame -> page -> pageNum = pageNum;
-
-                gettimeofday(&tv, NULL);
-                frame -> timeUsed = tv.tv_usec;
-
-                table -> frames[i] = frame;
-                table -> numFramesUsed += 1;
-                table -> lastPinnedPos = i;
-
-                closePageFile(&fh);
-                return RC_OK;
-            }
-        }
-    }
-    */
 
 
 
