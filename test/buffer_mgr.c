@@ -299,6 +299,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(readBlock(pageNum, &fh, page -> data) != RC_OK){
         free(page -> data);
         closePageFile(&fh);
+        printf("here");
         return -3;
     }
 
