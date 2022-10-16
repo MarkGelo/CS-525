@@ -139,6 +139,7 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
     return -1; // couldnt find page in the table.
 }
 
+// first iterate over pagetable, checking if page is in it, if not error, if so, mark it as dirty
 RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
     int idx = getFrame(bm, page -> pageNum);
     if(idx == -1){ // could not find page - error
@@ -149,6 +150,22 @@ RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
+// same thing as markDirty, but unpin it, added an error check. if fixcount already 0, dont unpin, aka -1 it, as may case errors later on
+RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page){
+    int idx = getFrame(bm, page -> pageNum);
+    if(idx == -1){ // could not find page - error
+        return -3;
+    }
+    BM_PageTable *table = bm -> mgmtData;
+    if(table -> frames[idx] -> fixCount == 0){ // if fixCount == 0, dont do -1, cuz may case errors later on
+        // or maybe just ignore if this case dont, do -1
+        printf("Attempting to unpin page, when it is not pinned at all, fixCount == 0");
+        // just leave it at 0
+    }else{
+        table -> frames[idx] -> fixCount -= 1; // unpin, -1 to fixCount.
+    }
+    return RC_OK;
+}
 
 /*
  * Loop over the frames in order to find which one contains the page number pageNum and returns it
@@ -167,20 +184,7 @@ BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum
     return (BM_PageFrame *) NULL;
 }
 
-
 /*
-RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-        foundFrame->dirtyFlag = TRUE;
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
-}
-*/
-
 RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
     BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
     if (foundFrame != NULL) {
@@ -191,6 +195,7 @@ RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
     // CHANGE RETURNED CODE
     return RC_WRITE_FAILED;
 }
+*/
 
 RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
     BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
