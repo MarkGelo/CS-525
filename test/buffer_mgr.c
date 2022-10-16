@@ -418,8 +418,21 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
 /* Results need to be freed after use */
 PageNumber *getFrameContents(BM_BufferPool *const bm) {
-    BM_PageTable *table = bm->mgmtData;
-    return table -> frameContents;
+    BM_PageTable *frames = bm->mgmtData;
+    PageNumber *arrayOfPageNumber = malloc(sizeof(PageNumber) * bm->numPages);
+    for (int i = 0; i < bm->numPages; i++) {
+        BM_PageFrame *frame = frames->frames[i];
+        if (frame != NULL)
+            arrayOfPageNumber[i] = frame->page->pageNum;
+        else
+            arrayOfPageNumber[i] = NO_PAGE;
+    }
+    return arrayOfPageNumber;
+
+
+    // remove the above and just do the 2 liner below if you initialize it correctly, and update during stuff ... Similar to how mickeytheone does it
+    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
+    return framesHandle -> frameContents;
 }
 /* Results need to be freed after use */
 bool *getDirtyFlags(BM_BufferPool *const bm) {
