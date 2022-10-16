@@ -22,7 +22,7 @@ typedef int PageNumber;
 #define NO_PAGE -1
 
 typedef struct BM_BufferPool {
-	SM_FileHandle *fh; // added this, so dont have to open a lot during functions? more efficient? or not
+	//SM_FileHandle *fh; // added this, so dont have to open a lot during functions? more efficient? or not
 	char *pageFile;
 	int numPages;
 	ReplacementStrategy strategy;

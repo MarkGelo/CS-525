@@ -54,12 +54,6 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     // create page table , with numPages page frames, also with other arrays for stats, hash?
     bm -> mgmtData = initPageTable(numPages);
 
-    // open file and save
-    bm -> fh = malloc(sizeof(SM_FileHandle));
-    if(openPageFile(bm -> pageFile, bm -> fh) != RC_OK) {
-        return RC_FILE_NOT_FOUND;
-    }
-
     return RC_OK;
 }
 
@@ -88,6 +82,11 @@ void freeTable(BM_PageTable *table){
 // shutdown buffer pool, freeing everything and making sure dirty pages are written back. if any pinned, errors out.
 RC shutdownBufferPool(BM_BufferPool *const bm){
     // assumes buffer pool is init already
+    SM_FileHandle fh;
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
     BM_PageTable *table = bm -> mgmtData;
 
     // go through each frame and see if dirty, if so write back
@@ -103,19 +102,24 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
             return RC_BUFFER_POOL_SHUTDOWN_ERROR;
         }
         if(curFrame -> dirtyFlag) {
-            writeBlock(curFrame -> page -> pageNum, bm -> fh, curFrame -> page -> data);
+            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
         }
         freeFrame(curFrame);
 
     }
     freeTable(table);
 
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_OK;
 }
 
 // all dirty pages are written back, ONLY if fix count 0
 RC forceFlushPool(BM_BufferPool *const bm){
+    SM_FileHandle fh;
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
     BM_PageTable *table = bm -> mgmtData;
     for(int i = 0; i < bm -> numPages; i++){
         BM_PageFrame *curFrame = table -> frames[i];
@@ -123,14 +127,14 @@ RC forceFlushPool(BM_BufferPool *const bm){
             continue;
         }
         if(curFrame -> dirtyFlag && curFrame -> fixCount == 0){ // only if fix count 0 and dirty, then write
-            writeBlock(curFrame -> page -> pageNum, bm -> fh, curFrame -> page -> data);
+            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
             curFrame -> dirtyFlag = false;
             table -> dirtyFlags[i] = false;
             bm -> numWriteIO += 1;
         }
     }
 
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_OK;
 }
 
@@ -188,17 +192,21 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     if(idx == -1){ // could not find page - error
         return RC_PAGE_NOT_FOUND;
     }
+    SM_FileHandle fh;
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
     BM_PageTable *table = bm -> mgmtData;
-    writeBlock(table -> frames[idx] -> page -> pageNum, bm -> fh, table -> frames[idx] -> page -> data);
+    writeBlock(table -> frames[idx] -> page -> pageNum, &fh, table -> frames[idx] -> page -> data);
     bm -> numWriteIO += 1;
     table -> frames[idx] -> dirtyFlag = false;
     table -> dirtyFlags[idx] = false; // also update array
 
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_OK;
 }
 
-RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page){
+RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     BM_PageTable *table = bm -> mgmtData;
 
     // check fixcounts array, if all non zero, cant do evict anyone
@@ -228,7 +236,7 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page){
 
     // if is dirty, write
     if(table -> frames[first] -> dirtyFlag){
-        writeBlock(table -> frames[first] -> page -> pageNum, bm -> fh, table -> frames[first] -> page -> data);
+        writeBlock(table -> frames[first] -> page -> pageNum, &fh, table -> frames[first] -> page -> data);
         bm -> numWriteIO += 1;
     }
 
@@ -245,11 +253,11 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page){
     table -> frames[first] -> age = globalTime;
     globalTime += 1;
 
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_OK;
 }
 
-RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page){
+RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     BM_PageTable *table = bm -> mgmtData;
 
     // check fixcounts array, if all non zero, cant do evict anyone
@@ -278,7 +286,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page){
 
     // if lru is dirty, write
     if(table -> frames[lru] -> dirtyFlag){
-        writeBlock(table -> frames[lru] -> page -> pageNum, bm -> fh, table -> frames[lru] -> page -> data);
+        writeBlock(table -> frames[lru] -> page -> pageNum, &fh, table -> frames[lru] -> page -> data);
         bm -> numWriteIO += 1;
     }
 
@@ -295,7 +303,7 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page){
     table -> frames[lru] -> age = globalTime;
     globalTime += 1;
 
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_OK;
 
 }
@@ -322,12 +330,17 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     }
 
     // not in buffer pool
-    ensureCapacity(pageNum + 1, bm -> fh);
+    SM_FileHandle fh;
+    if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
+        return RC_FILE_NOT_FOUND;
+    }
+
+    ensureCapacity(pageNum + 1, &fh);
 
     page -> data = malloc(PAGE_SIZE);
-    if(readBlock(pageNum, bm -> fh, page -> data) != RC_OK){
+    if(readBlock(pageNum, &fh, page -> data) != RC_OK){
         free(page -> data);
-        closePageFile(bm -> fh);
+        closePageFile(&fh);
         return RC_UNABLE_TO_PIN;
     }
     bm -> numReadIO += 1;
@@ -354,7 +367,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 table -> frames[i] = frame;
                 table -> numFramesUsed += 1;
 
-                closePageFile(bm -> fh);
+                closePageFile(&fh);
                 return RC_OK;
             }
         }
@@ -363,16 +376,16 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
     // have to evict based on strategy
     if(bm -> strategy == RS_LRU){
-        return LRU(bm, page);
+        return LRU(bm, page, fh);
     }else if(bm -> strategy == RS_FIFO){
-        return FIFO(bm, page);
+        return FIFO(bm, page, fh);
     }else{
         printf("Not implemented this strategy\n");
         return RC_STRATEGY_NOT_IMPLEMENTED;
     }
 
     // somehow couldnt find a place so error
-    closePageFile(bm -> fh);
+    closePageFile(&fh);
     return RC_UNABLE_TO_PIN;
 }
 
