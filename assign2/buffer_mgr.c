@@ -113,20 +113,22 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     return RC_OK;
 }
 
-// all dirty pages are written back, ONLY if fix count 0
+// all dirty pages are written back, ONLY if fix count 0?
 RC forceFlushPool(BM_BufferPool *const bm){
     SM_FileHandle fh;
     if(openPageFile(bm -> pageFile, &fh) != RC_OK) {
         return RC_FILE_NOT_FOUND;
     }
 
+    // todo use dirtyFlags table and fixcounts
     BM_PageTable *table = bm -> mgmtData;
     for(int i = 0; i < bm -> numPages; i++){
         BM_PageFrame *curFrame = table -> frames[i];
         if(curFrame == NULL){
             continue;
         }
-        if(curFrame -> dirtyFlag && curFrame -> fixCount == 0){ // only if fix count 0 and dirty, then write
+        // hmm hint said "if a dirty page is written back to disk and has fix count 0, then it is no longer considered dirty"
+        if(curFrame -> dirtyFlag && curFrame -> fixCount == 0){ // only if fix count 0 and dirty, then write??
             writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
             curFrame -> dirtyFlag = false;
             table -> dirtyFlags[i] = false;
@@ -216,6 +218,8 @@ RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page){
     return RC_OK;
 }
 
+// oldest page is chosen and replaced, as long as fixcount == 0. If not, then goes to the next oldest one.
+// replaces page that has been in the buffer for the longest time. Uses the age variable
 RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     BM_PageTable *table = bm -> mgmtData;
 
@@ -267,6 +271,8 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     return RC_OK;
 }
 
+// basically keeps a "timestamp" of when each page was last accessed, using the timeAccessed variable for each frame
+// when need to evict, selects the one with the oldest timestamp, aka, least recently used, with fixCount == 0;
 RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     BM_PageTable *table = bm -> mgmtData;
 
@@ -318,6 +324,8 @@ RC LRU(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
 
 }
 
+// first checks if in page table, if so just pin it. If its not then read the file and then check if free space in table.
+// if free space in table, then just insert. If not, then use a replacement strategy, FIFO or LRU to evict a page and replace.
 RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
 		const PageNumber pageNum){
 
@@ -359,7 +367,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if (table -> numFramesUsed < bm -> numPages) {
         int i;
         for(i = 0; i < bm -> numPages; i++){
-            if(table -> frameContents[i] == NO_PAGE){ // free space
+            if(table -> frameContents[i] == NO_PAGE){ // free space, use frameContents[i] instead of using frames[i]
                 BM_PageFrame *frame = MAKE_PAGE_FRAME();
                 frame -> page = MAKE_PAGE_HANDLE();
                 frame -> page -> data = page -> data;
@@ -400,6 +408,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 
 // statistics interface
 
+// 
 PageNumber *getFrameContents (BM_BufferPool *const bm){
     BM_PageTable *table = bm->mgmtData;
     return table -> frameContents;
