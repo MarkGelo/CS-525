@@ -103,7 +103,7 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
             return RC_BUFFER_POOL_SHUTDOWN_ERROR;
         }
         if(curFrame -> dirtyFlag) {
-            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+            writeBlock(curFrame -> page -> pageNum, bm -> fh, curFrame -> page -> data);
         }
         freeFrame(curFrame);
 
