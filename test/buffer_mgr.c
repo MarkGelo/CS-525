@@ -252,42 +252,6 @@ RC FIFO(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHandle fh){
     }
     printf("\n");
 
-
-
-    BM_PageTable *framesHandle = (BM_PageTable *) bm->mgmtData;
-    for (int i = 1; i < bm->numPages; i++) { // i = 1 cuz want lastpinnedpos + 1, at the very least. If cant evict that one, then go to next one, +2, +3 and so on
-        int position = (framesHandle->lastPinnedPos + i) % bm->numPages;
-        BM_PageFrame *frame = framesHandle->frames[position];
-        /* The frame can be evicted */
-        if (frame->fixCount == 0) {
-            if (frame->dirtyFlag == TRUE) {
-                if (writeBlock(frame->page->pageNum, &fh, frame->page->data) != RC_OK)
-                    return RC_WRITE_FAILED;
-                bm->numWriteIO++;
-            }
-
-            printf("Mine: %d\n", table -> frames[first] -> timeUsed);
-            printf("THIS: %d\n", frame -> timeUsed);
-
-            free(frame->page->data);
-            frame->page->data = page->data;
-            frame->page->pageNum = page->pageNum;
-            frame->fixCount = 1;
-            frame->dirtyFlag = 0;
-            frame -> timeUsed = globalTime;
-            globalTime += 1;
-            frame->framePos = position;
-            framesHandle->lastPinnedPos = position;
-            closePageFile(&fh);
-            return RC_OK;
-        }
-    }
-    // CHANGE RETURN CODE
-    return RC_WRITE_FAILED;
-
-
-
-
     // if is dirty, write
     if(table -> frames[first] -> dirtyFlag){
         writeBlock(table -> frames[first] -> page -> pageNum, &fh, table -> frames[first] -> page -> data);
