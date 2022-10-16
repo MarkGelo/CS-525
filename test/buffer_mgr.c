@@ -273,8 +273,8 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     if(idx == -1){ // could not find page - error
         return -3;
     }
-    BM_PageTable *table = bm -> mgmtData;
-    BM_PageFrame *frame = table -> frames[idx];
+    BM_PageTable *framesHandle = bm -> mgmtData;
+    BM_PageFrame *foundFrame = framesHandle -> frames[idx];
     
 
 
