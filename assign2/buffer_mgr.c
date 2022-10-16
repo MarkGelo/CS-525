@@ -100,9 +100,9 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
             return RC_BUFFER_POOL_SHUTDOWN_ERROR;
         }
         if(table -> dirtyFlags[i]){ // dirty page, write back
-            writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
+            writeBlock(table -> frames[i] -> page -> pageNum, &fh, table -> frames[i] -> page -> data);
         }
-        freeFrame(curFrame);
+        freeFrame(table -> frames[i]);
     }
     /*
     // todo, just check dirtyflags and fixcounts array? but should be same efficiency
