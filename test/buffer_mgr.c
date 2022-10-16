@@ -121,7 +121,33 @@ RC forceFlushPool(BM_BufferPool *const bm){
     return RC_OK;
 }
 
+// page management functions
 
+int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
+    BM_PageTable *table = bm -> mgmtData;
+    // todo use framecontents array to do this instead? faster?
+    for(int i = 0; i < bm -> numPages; i++){
+        BM_PageFrame *curFrame = table -> frames[i];
+        if(curFrame == NULL){
+            continue;
+        }
+        if(curFrame -> page -> pageNum == pageNum){
+            return i;
+        }
+    }
+
+    return -1; // couldnt find page in the table.
+}
+
+RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
+    int idx = getFrame(bm, page -> pageNum);
+    if(idx == -1){ // could not find page - error
+        return -3;
+    }
+    BM_PageTable *table = bm -> mgmtData;
+    table -> frames[idx] -> dirtyFlag = true; // mark that page as dirty
+    return RC_OK;
+}
 
 
 /*
@@ -140,6 +166,57 @@ BM_PageFrame *findFrameNumberN(BM_BufferPool *const bm, const PageNumber pageNum
     }
     return (BM_PageFrame *) NULL;
 }
+
+
+/*
+RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page) {
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
+    if (foundFrame != NULL) {
+        foundFrame->dirtyFlag = TRUE;
+        return RC_OK;
+    }
+
+    // CHANGE RETURNED CODE
+    return RC_WRITE_FAILED;
+}
+*/
+
+RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
+    if (foundFrame != NULL) {
+        foundFrame->fixCount--;
+        return RC_OK;
+    }
+
+    // CHANGE RETURNED CODE
+    return RC_WRITE_FAILED;
+}
+
+RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
+    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
+    if (foundFrame != NULL) {
+
+        char *filename = (char *) bm->pageFile;
+        SM_FileHandle fh;
+        if (openPageFile(filename, &fh) != RC_OK) {
+            return RC_FILE_NOT_FOUND;
+        }
+
+        if (writeBlock(page->pageNum, &fh, foundFrame->page->data) != RC_OK) {
+            return RC_WRITE_FAILED;
+        }
+        bm->numWriteIO++;
+        foundFrame->dirtyFlag = 0;
+        closePageFile(&fh);
+        return RC_OK;
+    }
+
+    // CHANGE RETURNED CODE
+    return RC_WRITE_FAILED;
+}
+
+
+
 
 /*
  * Taking a buffer pool, page handle already initialized (i.e pageNum and data are correct) finds a frame in the buffer
@@ -216,52 +293,6 @@ RC lruReplacement(BM_BufferPool *const bm, BM_PageHandle *const page, SM_FileHan
     framesHandle->lastPinnedPos = leastRecentlyUsedFrame->framePos;
     closePageFile(&fh);
     return RC_OK;
-}
-
-// Buffer Manager Interface Access Pages
-RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-        foundFrame->dirtyFlag = TRUE;
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
-}
-
-RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-        foundFrame->fixCount--;
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
-}
-
-RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page) {
-    BM_PageFrame *foundFrame = findFrameNumberN(bm, page->pageNum);
-    if (foundFrame != NULL) {
-
-        char *filename = (char *) bm->pageFile;
-        SM_FileHandle fh;
-        if (openPageFile(filename, &fh) != RC_OK) {
-            return RC_FILE_NOT_FOUND;
-        }
-
-        if (writeBlock(page->pageNum, &fh, foundFrame->page->data) != RC_OK) {
-            return RC_WRITE_FAILED;
-        }
-        bm->numWriteIO++;
-        foundFrame->dirtyFlag = 0;
-        closePageFile(&fh);
-        return RC_OK;
-    }
-
-    // CHANGE RETURNED CODE
-    return RC_WRITE_FAILED;
 }
 
 RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page,
