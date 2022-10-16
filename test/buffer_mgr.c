@@ -311,27 +311,27 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         int i;
         for(i = 0; i < bm -> numPages; i++){
             if(table -> frames[i] == NULL){
-                printf("here");
+                BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
+                frame -> page = malloc(sizeof(BM_PageHandle));
+                frame -> page -> data = page -> data;
+                frame -> fixCount = 1;
+                table -> fixCounts[idx] = 1;
+                frame -> dirtyFlag = false;
+                table -> dirtyFlags[idx] = false;
+                frame -> framePos = i; // delet
+                frame -> page -> pageNum = pageNum;
+
+                gettimeofday(&tv, NULL);
+                frame -> timeUsed = tv.tv_usec;
+
+                table -> frames[i] = frame;
+                table -> numFramesUsed += 1;
+                table -> lastPinnedPos = i;
+
+                closePageFile(&fh);
+                return RC_OK;
             }
         }
-
-        int availablePosition = table->lastPinnedPos + 1;
-
-        BM_PageFrame *frame = malloc(sizeof(BM_PageFrame));
-        frame->page = malloc(sizeof(BM_PageHandle));
-
-        frame->page->data = page->data;
-        frame->fixCount = 1;
-        frame->dirtyFlag = FALSE;
-        frame->framePos = availablePosition;
-        frame->page->pageNum = pageNum;
-        gettimeofday(&tv, NULL);
-        frame->timeUsed = tv.tv_usec;
-        table->frames[availablePosition] = frame;
-        table->numFramesUsed++;
-        table->lastPinnedPos = availablePosition;
-        closePageFile(&fh);
-        return RC_OK;
     }
 
     /*
