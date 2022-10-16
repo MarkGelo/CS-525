@@ -329,7 +329,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
                 table -> lastPinnedPos = i;
 
                 closePageFile(&fh);
-                return RC_OK
+                return RC_OK;
             }
         }
     }
