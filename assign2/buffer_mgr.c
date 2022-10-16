@@ -142,6 +142,14 @@ RC forceFlushPool(BM_BufferPool *const bm){
 
 int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
     BM_PageTable *table = bm -> mgmtData;
+    PageNumber *frameContents = table -> frameContents;
+    for(int i = 0; i < bm -> numPages; i++){
+        if(frameContents[i] -> pageNum != NO_PAGE && frameContents[i] -> pageNum == pageNum){
+            return i;
+        }
+    }
+
+    /*
     // todo use framecontents array to do this instead? faster?
     for(int i = 0; i < bm -> numPages; i++){
         BM_PageFrame *curFrame = table -> frames[i];
@@ -152,6 +160,7 @@ int getFrame(BM_BufferPool *const bm, const PageNumber pageNum){
             return i;
         }
     }
+    */
 
     return -1; // couldnt find page in the table.
 }
