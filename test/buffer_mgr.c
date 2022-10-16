@@ -286,6 +286,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
         page -> pageNum = pageNum; // ?
 
         table -> frames[idx] -> timeUsed = globalTime;
+        globalTime += 1;
 
         return RC_OK;
     }
