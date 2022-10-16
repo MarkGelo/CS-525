@@ -73,10 +73,10 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
         BM_PageFrame *curFrame = table -> frames[i];
         if (curFrame != NULL) {
             if (curFrame -> fixCount != 0) {
-                //CHANGE RETURN CODE
-                return RC_WRITE_FAILED;
+                printf("ERROR - Attempting to shutdown buffer pool that has a pinned page");
+                return -3;
             }
-            if (curFrame -> dirtyFlag == TRUE) {
+            if (curFrame -> dirtyFlag == true) {
                 writeBlock(curFrame -> page -> pageNum, &fh, curFrame -> page -> data);
             }
             free(curFrame -> page -> data);
@@ -85,7 +85,11 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
         }
     }
     free(table -> frames);
+    free(table -> frameContents);
+    free(table -> dirtyFlags);
+    free(table -> fixCounts);
     free(table);
+    
     closePageFile(&fh);
     return RC_OK;
 }
