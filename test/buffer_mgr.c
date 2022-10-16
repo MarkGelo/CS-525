@@ -8,7 +8,7 @@
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 
-
+// initialize page table with numPages frames, and also including framecontents, dirtyflags, fix counts arrays, as easability and so stats functions is already implemented
 BM_PageTable *initPageTable(int numPages) {
     BM_PageTable *table = malloc(sizeof(BM_PageTable));
     table -> frames = malloc(sizeof(BM_PageFrame *) * numPages);
@@ -35,6 +35,8 @@ BM_PageTable *initPageTable(int numPages) {
 }
 
 // buffer manager interface pool handling
+
+// initialize buffer pool with numPages page frames. This makes sure file exists already, and if so, readies the buffer pool and creates a page table for it
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
 		const int numPages, ReplacementStrategy strategy,
 		void *stratData){
@@ -49,7 +51,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
     bm -> numWriteIO = 0;
     bm -> numReadIO = 0;
     
-    // create page table , with numPages page frames
+    // create page table , with numPages page frames, also with other arrays for stats, hash?
     bm -> mgmtData = initPageTable(numPages);
 
     return RC_OK;
