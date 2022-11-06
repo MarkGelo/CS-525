@@ -18,7 +18,7 @@ typedef struct VarString {
 			var = (VarString *) malloc(sizeof(VarString));	\
 			var->size = 0;					\
 			var->bufsize = 100;					\
-			var->buf = calloc(100,1);//Fixed:Summer 21: calloc(100,0);			\
+			var->buf = calloc(100,1);			//Fixed:Summer 21: calloc(100,0);
 		} while (0)
 
 #define FREE_VARSTRING(var)			\
