@@ -1,0 +1,2 @@
+
+**test_assign3_1_V2 runs and all the tests are passed.** However, the first version of the test cases, test_assign3_1 results in segmentation fault, which is most likely due to the test code itself, not my implementation, since test_assign3_1_V2 works and all the tests are passed. 
