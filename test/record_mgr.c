@@ -4,7 +4,6 @@
 #include "tables.h"
 #include "buffer_mgr.h"
 #include "storage_mgr.h"
-#include "assist.h"
 
 typedef struct TableMgmt_info{
     int sizeOfRec;
