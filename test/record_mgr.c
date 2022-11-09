@@ -31,18 +31,7 @@ RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
   ph = malloc(PAGE_SIZE);
   memset(ph, '\0', PAGE_SIZE);
 
-  if(initHeader(ph, schema) != RC_OK){
-    return 33;
-  }
-
-  writeBlock(0, &fh, ph);
-  closePageFile(&fh);
-  free(ph);
-  
-  return RC_OK;
-}
-
-RC initHeader(SM_PageHandle ph, Schema *schema){
+  // check size
   int numRecordPagesBytes = MIN_S*sizeof(char);
   int numAttrBytes = MIN_S*sizeof(char);
   int keySizeBytes = MIN_S*sizeof(char);
@@ -61,7 +50,19 @@ RC initHeader(SM_PageHandle ph, Schema *schema){
   {
     return 33; // table fail -- too large?
   }
+
+  if(initHeader(ph, schema) != RC_OK){
+    return 33;
+  }
+
+  writeBlock(0, &fh, ph);
+  closePageFile(&fh);
+  free(ph);
   
+  return RC_OK;
+}
+
+RC initHeader(SM_PageHandle ph, Schema *schema){
   char * start;
   start = ph;
   //Write number of records
