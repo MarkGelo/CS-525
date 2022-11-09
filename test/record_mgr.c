@@ -43,19 +43,12 @@ RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
 }
 
 RC initHeader(SM_PageHandle ph, Schema *schema){
-  int numRecordSize = MIN_S; 
-  int numAttrSize = MIN_S;
-  int keyCharSize = MIN_S;
-  int dataTypeSize = MIN_S;
-  int typeLengthSize = MIN_S;
-  int keyAttrSize = MIN_S;
-  
-  int numRecordPagesBytes = numRecordSize*sizeof(char); //1 extra for null byte
-  int numAttrBytes = numAttrSize*sizeof(char);
-  int keySizeBytes = keyCharSize*sizeof(char);
-  int dataTypeBytes = dataTypeSize*schema->numAttr*sizeof(char);
-  int typeLengthBytes = typeLengthSize*schema->numAttr*sizeof(char);
-  int keyAttrBytes = keyAttrSize*schema->keySize*sizeof(char);
+  int numRecordPagesBytes = MIN_S*sizeof(char); //1 extra for null byte
+  int numAttrBytes = MIN_S*sizeof(char);
+  int keySizeBytes = MIN_S*sizeof(char);
+  int dataTypeBytes = MIN_S*schema->numAttr*sizeof(char);
+  int typeLengthBytes = MIN_S*schema->numAttr*sizeof(char);
+  int keyAttrBytes = MIN_S*schema->keySize*sizeof(char);
   int attLengthTotalBytes = 0;
   //Find bytes of attribute names
   for(int x = 0; x<schema->numAttr; x++){
@@ -66,30 +59,29 @@ RC initHeader(SM_PageHandle ph, Schema *schema){
   int arrLength = numRecordPagesBytes + numAttrBytes + keySizeBytes + typeLengthBytes + keyAttrBytes + dataTypeBytes + attLengthTotalBytes;
   if(arrLength>PAGE_SIZE)
   {
-    printf("FAIL: schema too large\n");
-    return 33; // table fail
+    return 33; // table fail -- too large?
   }
   
   char * start;
   start = ph;
   //Write number of records
-  start = writeInt(start,0,numRecordSize);
+  start = writeInt(start,0, MIN_S);
   //Write number of attributes
-  start = writeInt(start,schema->numAttr,numAttrSize);
+  start = writeInt(start,schema->numAttr,MIN_S);
   //Write key size
-  start = writeInt(start,schema->keySize,keyCharSize);
+  start = writeInt(start,schema->keySize,MIN_S);
 
   //Write data type
   for(int x = 0; x<schema->numAttr; x++){
-    start = writeInt(start,schema->dataTypes[x],dataTypeSize);
+    start = writeInt(start,schema->dataTypes[x],MIN_S);
   }
   //Write type length
   for(int x = 0; x<schema->numAttr; x++){
-     start = writeInt(start,schema->typeLength[x],typeLengthSize);
+     start = writeInt(start,schema->typeLength[x],MIN_S);
   }
   //Write keys
   for(int x = 0; x<schema->keySize; x++){
-    start = writeInt(start,schema->keyAttrs[x],keyAttrSize);
+    start = writeInt(start,schema->keyAttrs[x],MIN_S);
   }
   //Write attribute names
   for(int x = 0; x<schema->numAttr; x++){
