@@ -8,9 +8,22 @@
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
-// funcs
+// funcs - MINE
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
 RC initHeader(SM_PageHandle ph, Schema *schema);
+
+
+//Helper Function definitions - not MINE
+RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM_PageHandle ph);
+RC calcOffset (Schema *schema, int attrNum, int *result);
+int findFreePage(RM_TableData *rel,int pageStart);
+void clear(char * s,int bytes);
+void writeToHeader(RM_TableData *rel);
+char * writeInt(char * start, int value, int bytes);
+char * locateRecord(RM_TableData *rel, RID id);
+char * getIntFromString(char * start, int * value, int size);
+
+
 
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
   ph = malloc(PAGE_SIZE);
@@ -119,16 +132,6 @@ RC createTable (char *name, Schema *schema){
 
 
 
-
-//Helper Function definitions
-RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM_PageHandle ph);
-RC calcOffset (Schema *schema, int attrNum, int *result);
-int findFreePage(RM_TableData *rel,int pageStart);
-void clear(char * s,int bytes);
-void writeToHeader(RM_TableData *rel);
-char * writeInt(char * start, int value, int bytes);
-char * locateRecord(RM_TableData *rel, RID id);
-char * getIntFromString(char * start, int * value, int size);
 
 
 RC readHeader(SM_PageHandle pg, Schema * schema,int * numRecordPages){
