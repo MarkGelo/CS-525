@@ -1,57 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
+#include "dberror.h"
 #include "storage_mgr.h"
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
-//Helper Function definitions
-RC createHeaderPage(SM_PageHandle pg, Schema *schema);
-RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM_PageHandle ph);
-RC calcOffset (Schema *schema, int attrNum, int *result);
-int findFreePage(RM_TableData *rel,int pageStart);
-void clear(char * s,int bytes);
-void writeToHeader(RM_TableData *rel);
-char * writeInt(char * start, int value, int bytes);
-char * locateRecord(RM_TableData *rel, RID id);
-char * getIntFromString(char * start, int * value, int size);
+// funcs
+RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
+RC initHeader(SM_PageHandle ph, Schema *schema);
 
-//Table and Manager
-RC initRecordManager(void *mgmtData)
-{
-  printf("Record Manager Initialized!\n");
-  return RC_OK;
-}
+RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
+  ph = malloc(PAGE_SIZE);
+  memset(ph, '\0', PAGE_SIZE);
+  openPageFile(name, &fh);
 
-RC shutdownRecordManager()
-{
-  printf("Record Manager Shutdown\n");
-  return RC_OK;
-}
-
-RC createTable(char *name, Schema *schema)
-{
-  //Create pagefile
-  RC status = createPageFile(name);
-  if(status!=RC_OK){
-    return status; 
+  if(initHeader(ph, schema) != RC_OK){
+    return 33;
   }
-  SM_FileHandle fHandle;
-  SM_PageHandle pHandle = malloc(PAGE_SIZE);
-  memset(pHandle,'\0',PAGE_SIZE);
-  openPageFile(name,&fHandle);
-  status = createHeaderPage(pHandle,schema); 
-  if(status!=RC_OK){
-    return status;
-  }
-  writeBlock(0,&fHandle,pHandle);
-  closePageFile(&fHandle);
-  free(pHandle);
+
+  writeBlock(0, &fh, ph);
+  closePageFile(&fh);
+  free(ph);
+  
   return RC_OK;
 }
 
-RC createHeaderPage(SM_PageHandle pg, Schema *schema){
+RC initHeader(SM_PageHandle ph, Schema *schema){
   int numRecordSize = 11; 
   int numAttrSize = 11;
   int keyCharSize = 11;
@@ -109,6 +86,50 @@ RC createHeaderPage(SM_PageHandle pg, Schema *schema){
 
   return RC_OK;
 }
+
+// table and manager
+
+RC initRecordManager (void *mgmtData){
+    return RC_OK;
+}
+
+RC shutdownRecordManager (){
+    return RC_OK;
+}
+
+RC createTable (char *name, Schema *schema){
+    if(createPageFile(name) != RC_OK){
+      return 33;
+    }
+
+    SM_FileHandle fh;
+    SM_PageHandle ph;
+    if(initTable(fh, ph, schema) != RC_OK){
+      return 33;
+    }
+
+    return RC_OK;
+}
+
+
+
+
+
+
+
+
+
+
+//Helper Function definitions
+RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM_PageHandle ph);
+RC calcOffset (Schema *schema, int attrNum, int *result);
+int findFreePage(RM_TableData *rel,int pageStart);
+void clear(char * s,int bytes);
+void writeToHeader(RM_TableData *rel);
+char * writeInt(char * start, int value, int bytes);
+char * locateRecord(RM_TableData *rel, RID id);
+char * getIntFromString(char * start, int * value, int size);
+
 
 RC readHeader(SM_PageHandle pg, Schema * schema,int * numRecordPages){
   //Find number of record pages
