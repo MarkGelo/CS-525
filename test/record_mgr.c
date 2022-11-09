@@ -8,6 +8,8 @@
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
+#define MIN_S 10;
+
 // funcs - MINE
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
 RC initHeader(SM_PageHandle ph, Schema *schema);
@@ -41,12 +43,12 @@ RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
 }
 
 RC initHeader(SM_PageHandle ph, Schema *schema){
-  int numRecordSize = 11; 
-  int numAttrSize = 11;
-  int keyCharSize = 11;
+  int numRecordSize = MIN_S; 
+  int numAttrSize = MIN_S;
+  int keyCharSize = MIN_S;
   int dataTypeSize = 2;
-  int typeLengthSize = 11;
-  int keyAttrSize = 11;
+  int typeLengthSize = MIN_S;
+  int keyAttrSize = MIN_S;
   
   int numRecordPagesBytes = numRecordSize*sizeof(char); //1 extra for null byte
   int numAttrBytes = numAttrSize*sizeof(char);
@@ -138,13 +140,13 @@ RC readHeader(SM_PageHandle pg, Schema * schema,int * numRecordPages){
   //Find number of record pages
   char * start = pg;
   int val;
-  start = getIntFromString(start,&val,11);
+  start = getIntFromString(start,&val,MIN_S);
   *numRecordPages = val;
   
-  start = getIntFromString(start,&val,11);
+  start = getIntFromString(start,&val,MIN_S);
   schema->numAttr = val; 
   
-  start = getIntFromString(start,&val,11);
+  start = getIntFromString(start,&val,MIN_S);
   schema->keySize = val;
   
   schema->dataTypes = malloc(sizeof(int)*schema->numAttr);
@@ -158,12 +160,12 @@ RC readHeader(SM_PageHandle pg, Schema * schema,int * numRecordPages){
   }
   
   for(int x = 0; x<schema->numAttr; x++){
-    start = getIntFromString(start,&val,11);
+    start = getIntFromString(start,&val,MIN_S);
     schema->typeLength[x]=val;
   }
   
   for(int x = 0; x<schema->keySize; x++){
-    start = getIntFromString(start,&val,11);
+    start = getIntFromString(start,&val,MIN_S);
     schema->keyAttrs[x]=val;
   }
 
@@ -242,7 +244,7 @@ RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM
   rp->numTuples = tuples;
   rp->recSize = recordSize;
   rp->pageNo = pageNo;
-  rp->freeSpace = pageSize-(recordSize*tuples)-(sizeof(char)*11);
+  rp->freeSpace = pageSize-(recordSize*tuples)-(sizeof(char)*MIN_S);
   if(rp->freeSpace<0){
     return 33; // table fail
   }
@@ -275,7 +277,7 @@ void writeToHeader(RM_TableData *rel){
   RM_PageDirectory * pd = rel->mgmtData;
   BM_PageHandle * h  = MAKE_PAGE_HANDLE();
   pinPage(pd->bp,h,0); //Pin header page
-  writeInt(h->data, pd->numRecordPages, 11*sizeof(char));
+  writeInt(h->data, pd->numRecordPages, MIN_S*sizeof(char));
   markDirty(pd->bp,h);
   unpinPage(pd->bp,h);
   free(h);
@@ -309,7 +311,7 @@ RC insertRecord(RM_TableData *rel, Record *record)
     //Increase number of record pages in file header
     pd->numRecordPages++;
     pinPage(bp,h,0); //0 because there is only 1 header page
-    writeInt(h->data,pd->numRecordPages,11*sizeof(char));
+    writeInt(h->data,pd->numRecordPages,MIN_S*sizeof(char));
     markDirty(bp,h);
     unpinPage(bp,h);
     //Pin new page 
@@ -329,7 +331,7 @@ RC insertRecord(RM_TableData *rel, Record *record)
     pd->recPageArray = tmp2;
     //Set new page to not be full 
     pd->pageFullArray[pd->numRecordPages-1] = 0;
-    writeInt(h->data,0, 11*sizeof(char)); //Write 0 for # of tuplesinto record page header
+    writeInt(h->data,0, MIN_S*sizeof(char)); //Write 0 for # of tuplesinto record page header
     markDirty(bp,h);
     int rSize = getRecordSize(rel->schema)+sizeof(char); //Additional sizeof(char) for status char
     pd->recPageArray[pd->numRecordPages-1] = malloc(sizeof(RM_RecordPage));
@@ -346,10 +348,10 @@ RC insertRecord(RM_TableData *rel, Record *record)
   newId.page = freePage; 
   //Update numOfTuples
   rp->numTuples++;
-  writeInt(h->data,rp->numTuples,11*sizeof(char));
+  writeInt(h->data,rp->numTuples,MIN_S*sizeof(char));
   //Create a pointer that points to the first status char of the record page
-  char * start = h->data+11*sizeof(char);
-  int startBytes = 11*sizeof(char);
+  char * start = h->data+MIN_S*sizeof(char);
+  int startBytes = MIN_S*sizeof(char);
   int slotCount = 0;
   char firstElement;
   while(startBytes<PAGE_SIZE){
@@ -421,7 +423,7 @@ RC deleteRecord(RM_TableData *rel, RID id)
   clear(start,getRecordSize(rel->schema)*sizeof(char)+sizeof(char));
   //Update record page
   rp->numTuples--;
-  writeInt(h->data,rp->numTuples,11*sizeof(char));
+  writeInt(h->data,rp->numTuples,MIN_S*sizeof(char));
   markDirty(bp,h);
   rp->freeSpace+=getRecordSize(rel->schema)*sizeof(char)+sizeof(char);
   //Because a full record has been deleted, there is now room for another record
@@ -481,7 +483,7 @@ char * locateRecord(RM_TableData *rel, RID id){
   //Create a page handle that will handle the pages from the file
   BM_PageHandle * h  = MAKE_PAGE_HANDLE();
   pinPage(bp,h,id.page+1); //+1 is because header page is page 0
-  char * location = h->data+11*sizeof(char)+id.slot*(getRecordSize(rel->schema)+sizeof(char));
+  char * location = h->data+MIN_S*sizeof(char)+id.slot*(getRecordSize(rel->schema)+sizeof(char));
   unpinPage(bp,h);
   free(h);
   return location;
