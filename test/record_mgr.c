@@ -29,14 +29,12 @@ char * getIntFromString(char * start, int * value, int size);
 
 
 RC checkHeaderSize(int min_s, Schema *schema){
-  // num record, num attr, keysize, datatype, type length, key attributes
-  int numRecordPagesBytes = min_s*sizeof(char);
-  int numAttrBytes = min_s*sizeof(char);
-  int keySizeBytes = min_s*sizeof(char);
-  int dataTypeBytes = min_s*schema->numAttr*sizeof(char);
-  int typeLengthBytes = min_s*schema->numAttr*sizeof(char);
-  int keyAttrBytes = min_s*schema->keySize*sizeof(char);
-
+  int numRecordPagesBytes = MIN_S*sizeof(char);
+  int numAttrBytes = MIN_S*sizeof(char);
+  int keySizeBytes = MIN_S*sizeof(char);
+  int dataTypeBytes = MIN_S*schema->numAttr*sizeof(char);
+  int typeLengthBytes = MIN_S*schema->numAttr*sizeof(char);
+  int keyAttrBytes = MIN_S*schema->keySize*sizeof(char);
   int attLengthTotalBytes = 0;
   //Find bytes of attribute names
   for(int x = 0; x<schema->numAttr; x++){
