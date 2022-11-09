@@ -8,7 +8,7 @@
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
-int MIN_S = 1;
+int MIN_S = 5;
 
 // funcs - MINE
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
