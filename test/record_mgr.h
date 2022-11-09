@@ -12,6 +12,32 @@ typedef struct RM_ScanHandle
 	void *mgmtData;
 } RM_ScanHandle;
 
+// STRUCTURES
+typedef struct RM_RecordPage
+{
+	int numTuples;
+	int recSize;
+	int freeSpace;
+	int pageNo;
+} RM_RecordPage;
+
+typedef struct RM_PageDirectory
+{
+	int totalTuples;
+	int numRecordPages;
+	int *pageFullArray;
+	RM_RecordPage **recPageArray;
+	BM_BufferPool * bp;
+} RM_PageDirectory;
+
+typedef struct RM_ScanHelper
+{
+  	int totalRecordPages;
+  	int currentTuple;
+  	int currentPage;
+  	Expr *condition;
+} RM_ScanHelper;
+
 // table and manager
 extern RC initRecordManager (void *mgmtData);
 extern RC shutdownRecordManager ();
