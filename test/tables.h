@@ -51,6 +51,32 @@ typedef struct RM_TableData
 	void *mgmtData;
 } RM_TableData;
 
+// STRUCTURES
+typedef struct RM_RecordPage
+{
+	int numTuples;
+	int recSize;
+	int freeSpace;
+	int pageNo;
+} RM_RecordPage;
+
+typedef struct RM_PageDirectory
+{
+	int totalTuples;
+	int numRecordPages;
+	int *pageFullArray;
+	RM_RecordPage **recPageArray;
+	BM_BufferPool * bp;
+} RM_PageDirectory;
+
+typedef struct RM_ScanHelper
+{
+  	int totalRecordPages;
+  	int currentTuple;
+  	int currentPage;
+  	Expr *condition;
+} RM_ScanHelper;
+
 #define MAKE_STRING_VALUE(result, value)				\
 		do {									\
 			(result) = (Value *) malloc(sizeof(Value));				\

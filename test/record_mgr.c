@@ -6,31 +6,6 @@
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
-typedef struct RM_RecordPage
-{
-	int numTuples;
-	int recSize;
-	int freeSpace;
-	int pageNo;
-} RM_RecordPage;
-
-typedef struct RM_PageDirectory
-{
-	int totalTuples;
-	int numRecordPages;
-	int *pageFullArray;
-	RM_RecordPage **recPageArray;
-	BM_BufferPool * bp;
-} RM_PageDirectory;
-
-typedef struct RM_ScanHelper
-{
-  	int totalRecordPages;
-  	int currentTuple;
-  	int currentPage;
-  	Expr *condition;
-} RM_ScanHelper;
-
 //Helper Function definitions
 RC createHeaderPage(SM_PageHandle pg, Schema *schema);
 RC initRecordPage(int pageSize,int recordSize,int pageNo, RM_RecordPage * rp, SM_PageHandle ph);
