@@ -13,7 +13,6 @@ int MIN_S = 5;
 // funcs - MINE
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
 RC initHeader(SM_PageHandle ph, Schema *schema);
-RC checkHeaderSize(int min_s, Schema *schema);
 
 
 //Helper Function definitions - not MINE
@@ -27,27 +26,6 @@ char * locateRecord(RM_TableData *rel, RID id);
 char * getIntFromString(char * start, int * value, int size);
 
 
-
-RC checkHeaderSize(int min_s, Schema *schema){
-  int numRecordPagesBytes = MIN_S*sizeof(char);
-  int numAttrBytes = MIN_S*sizeof(char);
-  int keySizeBytes = MIN_S*sizeof(char);
-  int dataTypeBytes = MIN_S*schema->numAttr*sizeof(char);
-  int typeLengthBytes = MIN_S*schema->numAttr*sizeof(char);
-  int keyAttrBytes = MIN_S*schema->keySize*sizeof(char);
-  int attLengthTotalBytes = 0;
-  //Find bytes of attribute names
-  for(int x = 0; x<schema->numAttr; x++){
-    int l = strlen(schema->attrNames[x])+1;
-    attLengthTotalBytes+=(l*sizeof(char)); 
-  }
-    
-  int arrLength = numRecordPagesBytes + numAttrBytes + keySizeBytes + typeLengthBytes + keyAttrBytes + dataTypeBytes + attLengthTotalBytes;
-  if(arrLength>PAGE_SIZE)
-  {
-    return 33; // table fail -- too large?
-  }
-}
 
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
   ph = malloc(PAGE_SIZE);
@@ -65,8 +43,23 @@ RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
 }
 
 RC initHeader(SM_PageHandle ph, Schema *schema){
-  if(checkHeaderSize(MIN_S, schema) != RC_OK){
-    return 33;
+  int numRecordPagesBytes = MIN_S*sizeof(char);
+  int numAttrBytes = MIN_S*sizeof(char);
+  int keySizeBytes = MIN_S*sizeof(char);
+  int dataTypeBytes = MIN_S*schema->numAttr*sizeof(char);
+  int typeLengthBytes = MIN_S*schema->numAttr*sizeof(char);
+  int keyAttrBytes = MIN_S*schema->keySize*sizeof(char);
+  int attLengthTotalBytes = 0;
+  //Find bytes of attribute names
+  for(int x = 0; x<schema->numAttr; x++){
+    int l = strlen(schema->attrNames[x])+1;
+    attLengthTotalBytes+=(l*sizeof(char)); 
+  }
+    
+  int arrLength = numRecordPagesBytes + numAttrBytes + keySizeBytes + typeLengthBytes + keyAttrBytes + dataTypeBytes + attLengthTotalBytes;
+  if(arrLength>PAGE_SIZE)
+  {
+    return 33; // table fail -- too large?
   }
   
   char * start;
