@@ -8,7 +8,7 @@
 #include "buffer_mgr.h"
 #include "record_mgr.h"
 
-int MIN_S = 2;
+int MIN_S = 5;
 
 // funcs - MINE
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema);
@@ -46,7 +46,7 @@ RC initHeader(SM_PageHandle ph, Schema *schema){
   int numRecordSize = MIN_S; 
   int numAttrSize = MIN_S;
   int keyCharSize = MIN_S;
-  int dataTypeSize = 2;
+  int dataTypeSize = MIN_S;
   int typeLengthSize = MIN_S;
   int keyAttrSize = MIN_S;
   
@@ -155,7 +155,7 @@ RC readHeader(SM_PageHandle pg, Schema * schema,int * numRecordPages){
   schema->attrNames = malloc(sizeof(char*)*schema->numAttr);
   
   for(int x = 0; x<schema->numAttr; x++){
-    start = getIntFromString(start,&val,2);
+    start = getIntFromString(start,&val,MIN_S);
     schema->dataTypes[x]=val;
   }
   
