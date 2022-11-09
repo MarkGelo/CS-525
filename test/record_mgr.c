@@ -28,7 +28,6 @@ char * getIntFromString(char * start, int * value, int size);
 RC initTable(SM_FileHandle fh, SM_PageHandle ph, Schema *schema){
   ph = malloc(PAGE_SIZE);
   memset(ph, '\0', PAGE_SIZE);
-  openPageFile(name, &fh);
 
   if(initHeader(ph, schema) != RC_OK){
     return 33;
@@ -70,7 +69,7 @@ RC initHeader(SM_PageHandle ph, Schema *schema){
   }
   
   char * start;
-  start = pg;
+  start = ph;
   //Write number of records
   start = writeInt(start,0,numRecordSize);
   //Write number of attributes
@@ -117,6 +116,7 @@ RC createTable (char *name, Schema *schema){
 
     SM_FileHandle fh;
     SM_PageHandle ph;
+    openPageFile(name, &fh);
     if(initTable(fh, ph, schema) != RC_OK){
       return 33;
     }
