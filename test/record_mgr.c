@@ -41,7 +41,7 @@ RC checkHeaderSize(int min_s, Schema *schema){
   //Find bytes of attribute names
   for(int i = 0; i < schema -> numAttr; i++){
     int l = strlen(schema -> attrNames[i]) + 1;
-    attLengthTotalBytes += l * sizeof(char); 
+    attLengthTotalBytes += (l * sizeof(char)); 
   }
     
   int length = numRecordPagesBytes + numAttrBytes + keySizeBytes + typeLengthBytes + keyAttrBytes + dataTypeBytes + attLengthTotalBytes;
