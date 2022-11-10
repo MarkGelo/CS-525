@@ -87,7 +87,7 @@ RC createTable (char *name, Schema *schema){
 
     // write attr names
     for(i = 0; i < schema -> numAttr; i++){
-        sprintf(ph, "%d", schema -> attrNames[i]);
+        sprintf(ph, "%s", schema -> attrNames[i]);
         ph += strlen(schema -> attrNames[i]);
     }
 
@@ -199,7 +199,7 @@ RC freeSchema (Schema *schema){
         free(schema -> attrNames[i]);
     }
     free(schema -> attrNames);
-    free(schema)
+    free(schema);
 
     return RC_OK;
 }
