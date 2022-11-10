@@ -30,7 +30,7 @@ typedef struct RM_PageMgr
 	int *full;
 	BM_PageHandle *ph;
 	RM_RecordPage **recordPages;
-	BM_BufferPool * bp;
+	BM_BufferPool *bp;
 } RM_PageDirectory;
 
 typedef struct RM_ScanMgr

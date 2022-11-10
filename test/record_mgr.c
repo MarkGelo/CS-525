@@ -208,13 +208,24 @@ RC openTable (RM_TableData *rel, char *name){
 
 RC closeTable (RM_TableData *rel){
     // if closing table, have to write to make sure nothing is lost
+    // free the records
+    /*
+
+        RM_TableData *rel;
+        void *mgmtData;
+        
     RM_PageMgr *pm = rel -> mgmtData;
 
     forcePage(pm -> bp, 0);
     shutdownBufferPool(pm -> bp);
 
-    // free the records
-    /*
+        int numTuples;
+        int numRecordPages;
+        int *full;
+        BM_PageHandle *ph;
+        RM_RecordPage **recordPages;
+        BM_BufferPool *bp;
+
     int i;
     for(i = 0; i < pm -> numRecordPages; i++){
         free(pm -> recordPages[i])
