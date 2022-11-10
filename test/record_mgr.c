@@ -36,9 +36,9 @@ RC createTable (char *name, Schema *schema){
         totalSize += strlen(schema -> attrNames[i]) * sizeof(char);
     }
     // want to keep number of tuples, number of attr, key size of attr
-    totalSize += sizeof(char) + sizeof(char) + sizeof(char)
+    totalSize += sizeof(char) + sizeof(char) + sizeof(char);
     // also  key attr, datatypes, typelength. 
-    totalSize += schema -> numAttr * sizeof(char) + schema -> numAttr * sizeof(char) + schema -> keySize * sizeof(char)
+    totalSize += schema -> numAttr * sizeof(char) + schema -> numAttr * sizeof(char) + schema -> keySize * sizeof(char);
 
     if(totalSize > PAGE_SIZE){ // header cant fit in one page
         return 33;
