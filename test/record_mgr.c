@@ -276,6 +276,58 @@ int getNumTuples (RM_TableData *rel){
     return 0;
 }
 
+// dealing with schemas
+int getRecordSize (Schema *schema){
+    // get record size using schema, datatypes, and numAttr
+    int recordSize = 0;
+    int i;
+    for(i = 0; i < schema -> numAttr; i++){
+        if(schema -> dataTypes[i] == DT_INT){
+            recordSize += sizeof(int);
+        }else if(schema -> dataTypes[i] == DT_STRING){
+            recordSize += schema -> typeLength[i];
+        }else if(schema -> dataTypes[i] == DT_FLOAT){
+            recordSize += sizeof(float);
+        }else if(schema -> dataTypes[i] == DT_BOOL){
+            recordSize += sizeof(bool);
+        }
+    }
+
+    return recordSize;
+}
+
+Schema *createSchema (int numAttr, char **attrNames, DataType *dataTypes, int *typeLength, int keySize, int *keys){
+    // just create the schema based on the parameters
+    Schema *schema = malloc(sizeof(Schema));
+
+    schema -> numAttr = numAttr;
+    schema -> attrNames = attrNames;
+    schema -> dataTypes = dataTypes;
+    schema -> typeLength = typeLength;
+    schema -> keySize = keySize;
+    schema -> keyAttrs = keys;
+
+    return schema;
+}
+
+RC freeSchema (Schema *schema){
+    // schema has numAttr, **attrNames, *dataTypes, *typeLength, *keyAttrs, keySize
+    // free arrays
+    free(schema -> dataTypes);
+    free(schema -> typeLength);
+    free(schema -> keyAttrs);
+    // free attrNames
+    int i;
+    for(i = 0; i < schema -> numAttr; i++){
+        free(schema -> attrNames[i]);
+    }
+    free(schema -> attrNames);
+    free(schema);
+
+    return RC_OK;
+}
+
+
 // handling records in a table
 RC insertRecord (RM_TableData *rel, Record *record){
     /*
@@ -452,57 +504,6 @@ RC closeScan (RM_ScanHandle *scan){
     // close scan so can just free scan
     free(scan -> mgmtData);
     free(scan);
-
-    return RC_OK;
-}
-
-// dealing with schemas
-int getRecordSize (Schema *schema){
-    // get record size using schema, datatypes, and numAttr
-    int recordSize = 0;
-    int i;
-    for(i = 0; i < schema -> numAttr; i++){
-        if(schema -> dataTypes[i] == DT_INT){
-            recordSize += sizeof(int);
-        }else if(schema -> dataTypes[i] == DT_STRING){
-            recordSize += schema -> typeLength[i];
-        }else if(schema -> dataTypes[i] == DT_FLOAT){
-            recordSize += sizeof(float);
-        }else if(schema -> dataTypes[i] == DT_BOOL){
-            recordSize += sizeof(bool);
-        }
-    }
-
-    return recordSize;
-}
-
-Schema *createSchema (int numAttr, char **attrNames, DataType *dataTypes, int *typeLength, int keySize, int *keys){
-    // just create the schema based on the parameters
-    Schema *schema = malloc(sizeof(Schema));
-
-    schema -> numAttr = numAttr;
-    schema -> attrNames = attrNames;
-    schema -> dataTypes = dataTypes;
-    schema -> typeLength = typeLength;
-    schema -> keySize = keySize;
-    schema -> keyAttrs = keys;
-
-    return schema;
-}
-
-RC freeSchema (Schema *schema){
-    // schema has numAttr, **attrNames, *dataTypes, *typeLength, *keyAttrs, keySize
-    // free arrays
-    free(schema -> dataTypes);
-    free(schema -> typeLength);
-    free(schema -> keyAttrs);
-    // free attrNames
-    int i;
-    for(i = 0; i < schema -> numAttr; i++){
-        free(schema -> attrNames[i]);
-    }
-    free(schema -> attrNames);
-    free(schema);
 
     return RC_OK;
 }

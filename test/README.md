@@ -23,9 +23,9 @@ Didn't find the time to complete this assignment but most of the functions I hav
 
 **getRecord**: Similar to delete and update, but instead just gets the record. Since we know the size of the records, we can just memcpy. So if it finds the record, we then fill up record -> data and the id so, we successfully get the record.
 
-**startScan**: TODO
+**startScan**: Just initializes the scan, fills up the information in the scan handle and the helping scan manager structure.
 
-**next**: TODO
+**next**: Returns the next record that matches the scan condition. This uses the evalExpr given by the expr.c. Scans through each record page and updates where it currently is as it scans. If it matches then returns immediately.
 
 **closeScan**: Just close the scan so can free the free(scan -> mgmtData) and then free(scan).
 
