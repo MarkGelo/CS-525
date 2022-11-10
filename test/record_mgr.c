@@ -148,7 +148,6 @@ RC next (RM_ScanHandle *scan, Record *record){
 RC closeScan (RM_ScanHandle *scan){
     // close scan so can just free scan
     free(scan -> mgmtData);
-    free(scan);
 
     return RC_OK;
 }
