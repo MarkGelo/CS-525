@@ -7,7 +7,7 @@ The only functions I didnt implement are: **FUNCTIONS ....** **FUNCTION 1**
 
 **Functions I have completed**
 
-**createTable**: TODO
+**createTable**: To create table, have to create a page file and initialize it with values such as the header. The header includes the num records, num attr, keysize, datatype, typelenght, key attributes, attr names. These must fit in one page so it checks those. Then using the schema, it initializes it in the header, writes it in the page file and then closes it. Later on, when the manager opens the table then, it will initialize all those in structures for easier use.
 
 **openTable**: TODO
 

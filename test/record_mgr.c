@@ -10,57 +10,139 @@
 
 // table and manager
 RC initRecordManager (void *mgmtData){
-
+    printf("Initialized Record Manager\n");
+    return RC_OK;
 }
 
 RC shutdownRecordManager (){
-
+    printf("Shutdown Record Manager\n");
+    return RC_OK;
 }
 
 RC createTable (char *name, Schema *schema){
+    if (access(name, F_OK) == 0){ // file exists already
+        return RC_WRITE_FAILED; // dont want to del an already existing file ... not sure if its fine to create new RC defs
+    }
 
+    if(createPageFile(name) != RC_OK){ // has to create page file
+        return 33; // cannot create table so cant do record manager stuff
+    }
+
+    // create header
+    // make sure enough size
+    int totalSize = 0;
+    int i;
+    for(i = 0; i < schema -> numAttr; i++){
+        totalSize += strlen(schema -> attrNames[i]) * sizeof(char);
+    }
+    // want to keep number of tuples, number of attr, key size of attr
+    totalSize += sizeof(char) + sizeof(char) + sizeof(char)
+    // also  key attr, datatypes, typelength. 
+    totalSize += schema -> numAttr * sizeof(char) + schema -> numAttr * sizeof(char) + schema -> keySize * sizeof(char)
+
+    if(totalSize > PAGE_SIZE){ // header cant fit in one page
+        return 33;
+    }
+
+    SM_FileHandle fh;
+    SM_PageHandle ph = malloc(PAGE_SIZE);
+    //memset(ph, '\0', PAGE_SIZE); // "\0" is wrong
+    if(openPageFile(name, &fh) != RC_OK){
+        return 33;
+    }
+
+    // write to page the values
+    // write number of tuples
+    //memset(ph, 0, sizeof(int));
+    sprintf(ph, "%d", 0);
+    ph += sizeof(int);
+    
+    // write number of attrs
+    //memset(ph, 0, sizeof(int))
+    sprintf(ph, "%d", schema -> numAttr);
+    ph += sizeof(int);
+
+    // write key size
+    //memset(ph, 0, sizeof())
+    sprintf(ph, "%d", schema -> keySize);
+    ph += sizeof(int);
+
+    // write data types
+    for(i = 0; i < schema -> numAttr; i++){
+        sprintf(ph, "%d", schema -> dataTypes[i]);
+        ph += sizeof(int);
+    }
+
+    // write typelength
+    for(i = 0; i < schema -> numAttr; i++){
+        sprintf(ph, "%d", schema -> typeLength[i]);
+        ph += sizeof(int);
+    }
+
+    // write key attr
+    for(i = 0; i < schema -> numAttr; i++){
+        sprintf(ph, "%d", schema -> keyAttrs[i]);
+        ph += sizeof(int);
+    }
+
+    // write attr names
+    for(i = 0; i < schema -> numAttr; i++){
+        sprintf(ph, "%d", schema -> attrNames[i]);
+        ph += strlen(schema -> attrNames[i]);
+    }
+
+    if(writeBlock(0, &fh, ph) != RC_OK){
+        return 33;
+    }
+    if(closePageFile(&fh) != RC_OK){
+        return 33;
+    }
+
+    free(ph);
+
+    return RC_OK;
 }
 
 RC openTable (RM_TableData *rel, char *name){
-
+    return RC_OK;
 }
 
 RC closeTable (RM_TableData *rel){
-
+    return RC_OK;
 }
 
 RC deleteTable (char *name){
-
+    return RC_OK;
 }
 
 int getNumTuples (RM_TableData *rel){
-
+    return 0;
 }
 
 // handling records in a table
 RC insertRecord (RM_TableData *rel, Record *record){
-
+    return RC_OK;
 }
 
 RC deleteRecord (RM_TableData *rel, RID id){
-
+    return RC_OK;
 }
 
 RC updateRecord (RM_TableData *rel, Record *record){
-
+    return RC_OK;
 }
 
 RC getRecord (RM_TableData *rel, RID id, Record *record){
-
+    return RC_OK;
 }
 
 // scans
 RC startScan (RM_TableData *rel, RM_ScanHandle *scan, Expr *cond){
-
+    return RC_OK;
 }
 
 RC next (RM_ScanHandle *scan, Record *record){
-
+    return RC_OK;
 }
 
 RC closeScan (RM_ScanHandle *scan){
