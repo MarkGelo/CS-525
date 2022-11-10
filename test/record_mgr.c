@@ -258,32 +258,182 @@ RC deleteTable (char *name){
 }
 
 int getNumTuples (RM_TableData *rel){
-    return rel -> mgmtData -> numTuples;
+    /*
+    PageMgr has numTuples which can be used for this function
+
+        int numTuples;
+        int numRecordPages;
+        int *full;
+        BM_PageHandle *ph;
+        RM_RecordPage **recordPages;
+        BM_BufferPool *bp;
+
+    returns the number of records stored in our table. The insert and delete functions update this variable so it is always correct.
+    */
+
+    //return rel -> mgmtData -> numTuples;
+
+    return 0;
 }
 
 // handling records in a table
 RC insertRecord (RM_TableData *rel, Record *record){
+    /*
+    RM_PageMgr *pm = rel -> mgmtData;
+    BM_BufferPool *bp = pm -> bp;
+    BM_PageHandle *ph = MAKE_PAGE_HANDLE();
+
+        int numTuples;
+        int numRecordPages;
+        int *full;
+        BM_PageHandle *ph;
+        RM_RecordPage **recordPages;
+        BM_BufferPool *bp;
+
+    find free page using array
+    freeidx = freePage(pm -> full)
+
+    if(freeidx)
+        // didnt find free space
+        pm -> numRecordPages += 1
+
+        reallocate all arrays
+        int *full;
+	BM_PageHandle *ph;
+	RM_RecordPage **recordPages;
+
+        add 1 page so have to reallocate memory for those
+
+        once we reallocate, then the free space will be at the last page
+        so freepage = pm -> numRecordPages - 1
+
+        then just do everything below as there is free space now
+
+    else
+        // found free space
+        RM_RecordPage *rp = pm -> recordPages[freeidx]
+        rp -> numTuples += 1
+        RID newRecord
+        newRecord.page = freeidx
+
+        write back to data
+
+            typedef struct RM_RecordPage
+            {
+                int numberOfTuples;
+                RID rid; // page and slot
+                int recordSize;
+                int free;
+            } RM_RecordPage;
+
+        update record parameter
+        record -> id = newRecord
+        pm -> numTuples += 1;
+
+        update the free space array
+        and also the free int 
+
+    */
+
     return RC_OK;
 }
 
 RC deleteRecord (RM_TableData *rel, RID id){
+    /*
+    get pm from rel -> mgmtData
+    use buffer pool to get page handle, ph
+    pinPage(bp, ph, id.page + 1)
+
+    location = sizeof(char) + record.id.slot * recordSize(rel -> schema)
+
+    if location has record then delete
+    if not then error
+
+    delete:
+        memset(location, 0, recordSizE(rel -> schema)) // remove all information
+        // update the structures
+        RecordPage.numtuples -= 1
+        pm -> full[id.page] = 0 // dont need to check, since if delete then for sure not full
+        // no need for double checking
+        pm -> numTuples -= 1 // since deleted
+
+    */
+
     return RC_OK;
 }
 
 RC updateRecord (RM_TableData *rel, Record *record){
+    /*
+    get pm from rel -> mgmtData
+    use buffer pool to get page handle, ph
+    pinPage(bp, ph, id.page + 1)
+
+    location = sizeof(char) + record.id.slot * recordSize(rel -> schema)
+
+    if location has record then update
+    if not then error
+
+    update:
+
+    */
+
     return RC_OK;
 }
 
 RC getRecord (RM_TableData *rel, RID id, Record *record){
+    /*
+    get pm from rel -> mgmtData
+    use buffer pool to get page handle, ph
+    pinPage(bp, ph, id.page + 1)
+
+    location = sizeof(char) + record.id.slot * recordSize(rel -> schema)
+
+    if location has record then get the record
+    if not then error
+
+    getRecord:
+        // have location and size, aka how much to copy
+        // so just memcpy
+        memcpy(record -> data, location, recordSize(schema))
+        record -> id = id
+        // update the record with the data and id, also the slot and page
+    */
+
     return RC_OK;
 }
 
 // scans
 RC startScan (RM_TableData *rel, RM_ScanHandle *scan, Expr *cond){
+    /*
+        typedef struct RM_ScanMgr
+        {
+            int totalRecordPages;
+            int curTuple;
+            int scanCount;
+            int curPage;
+            Expr *condition;
+        } RM_ScanHelper;
+
+        basically just initializes the scan. Fills up the scan handle as well as
+        create the scan manager structure and just starts it all up
+        
+    */
+
+    RM_ScanMgr *sm = malloc(sizeof(RM_ScanMgr));
+    scan -> rel = rel
+    scan -> mgmtData = sm; // store scan manager to scan handle using mgmtdata
+    sm -> condition = cond;
+    sm -> curPage = -1;
+    sm -> curTuple = -1;
+
     return RC_OK;
 }
 
 RC next (RM_ScanHandle *scan, Record *record){
+    /*
+    
+    */
+
     return RC_OK;
 }
 

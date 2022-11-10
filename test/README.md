@@ -15,13 +15,13 @@ Didn't find the time to complete this assignment but most of the functions I hav
 
 **getNumTuples**: Similar to previous assignments, I just made a variable to store the number of tuples so when this function is called, its as simple as returning that variable.
 
-**insertRecord**: TODO
+**insertRecord**: Using the array we stored in the variable, specifically used for finding free space, we can interate over it to see a space for this current record. If space is found, it checks if it fits the size and if not it tries to keep finding space. Then the record structure is updated, such as the page and slot according to where it is inserted. The page is the page the record was inserted at and slot is the slot, or the index it was inserted in that specific page. If no page is found then we must increase the page in the file. To do this, we have to reallocate memory for the record arrays as well as the free space array.
 
-**deleteRecord**: TODO
+**deleteRecord**: Locates the record from the table using the RID vars, such as rid page and slot. Once it is found then this function clears that location and updates all the things, so the manager knows this location is free. If the location specified doesnt have this record, then throws an error.
 
-**updateRecord**: TODO
+**updateRecord**: Locates the record from the table using the RID vars, such as rid page and slot. Once it is found then this function updates that location and updates all the things. If the location specified doesnt have this record, then throws an error.
 
-**getRecord**: TODO
+**getRecord**: Similar to delete and update, but instead just gets the record. Since we know the size of the records, we can just memcpy. So if it finds the record, we then fill up record -> data and the id so, we successfully get the record.
 
 **startScan**: TODO
 
