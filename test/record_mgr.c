@@ -431,7 +431,18 @@ RC startScan (RM_TableData *rel, RM_ScanHandle *scan, Expr *cond){
 
 RC next (RM_ScanHandle *scan, Record *record){
     /*
-    
+    iterate over all the table, pages, and records
+    init tableData, pagemgr, scanmgr, recordpage
+
+    for(i = 0; i < totalRecordPages; i++){
+        curRecordPage
+        for(j = 0; j < numTuples; j++){
+            if actualRecord()
+                if evalExpr(record, schema, condition, result)
+                    return
+        }
+
+    }
     */
 
     return RC_OK;
