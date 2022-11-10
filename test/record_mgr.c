@@ -416,11 +416,11 @@ RC startScan (RM_TableData *rel, RM_ScanHandle *scan, Expr *cond){
 
         basically just initializes the scan. Fills up the scan handle as well as
         create the scan manager structure and just starts it all up
-        
+
     */
 
     RM_ScanMgr *sm = malloc(sizeof(RM_ScanMgr));
-    scan -> rel = rel
+    scan -> rel = rel;
     scan -> mgmtData = sm; // store scan manager to scan handle using mgmtdata
     sm -> condition = cond;
     sm -> curPage = -1;
