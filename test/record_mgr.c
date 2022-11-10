@@ -213,7 +213,7 @@ RC closeTable (RM_TableData *rel){
 
         RM_TableData *rel;
         void *mgmtData;
-        
+
     RM_PageMgr *pm = rel -> mgmtData;
 
     forcePage(pm -> bp, 0);
@@ -248,11 +248,17 @@ RC closeTable (RM_TableData *rel){
 }
 
 RC deleteTable (char *name){
+    // since this only gives the name, assumes that closeTable is done first before this so nothing is lost and everything is good
+
+    if(destroyPageFile(name) != RC_OK){
+        return 33; // fail in deleting table
+    }
+
     return RC_OK;
 }
 
 int getNumTuples (RM_TableData *rel){
-    return 0;
+    return rel -> mgmtData -> numTuples;
 }
 
 // handling records in a table

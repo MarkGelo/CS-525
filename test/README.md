@@ -9,11 +9,11 @@ Didn't find the time to complete this assignment but most of the functions I hav
 
 **openTable**: To open the table, we make buffer pool and pagehandle, and then initialize the buffer pool, pinning the header with all the information we need. We then initialize the schema so we can add it to our tableData. To initialize the schema, we read the header with all the information already done there. To do this, we do some pointer magic, and just remember the way we added stuff to the header. Once we finish the schema, we then initialize all our structures that we will be using such as the PageMgr. the PageMgr stores the buffer pool, page handle, the records, and most importantly if there is free space, using an array. Once all of these are initialized and ready, the table is open and this function has done its job.
 
-**closeTable**: TODO
+**closeTable**: Closing the table requires shutting down buffer pol/manager and frees all the memory used up by the table. To do this first, we need to make sure all the data is saved so we forcePage, write back to disk the header, just incase it was changed in memory, but not in disk. After that we can shutdown the buffer pool and then start freeing up memory. We first free the records by iterating over all the records and then free the array used for that, the bp, ph, the array used to determine free space and then we can free the schema. To free the schema, we can just use the function freeSchema we made -> Just free the arrays, dataTypes, typeLength, keyAttrs and for attrNames, have to iterate over them first, freeing attrNames[i] and then you can free attrNames. Then free the whole schema.
 
-**deleteTable**: TODO
+**deleteTable**: This assumes that closeTable is called first before this, since the only paramter this has is the name of the table, aka name of the page file too. So all this does is destroy the page file with that name, thus deleteting the table. To make sure nothing is lost and everything is good, closeTable must be called before this function.
 
-**getNumTuples**: TODO
+**getNumTuples**: Similar to previous assignments, I just made a variable to store the number of tuples so when this function is called, its as simple as returning that variable.
 
 **insertRecord**: TODO
 
