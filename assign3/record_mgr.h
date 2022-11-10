@@ -4,6 +4,8 @@
 #include "dberror.h"
 #include "expr.h"
 #include "tables.h"
+#include "storage_mgr.h"
+#include "buffer_mgr.h"
 
 // Bookkeeping for scans
 typedef struct RM_ScanHandle
@@ -11,6 +13,34 @@ typedef struct RM_ScanHandle
 	RM_TableData *rel;
 	void *mgmtData;
 } RM_ScanHandle;
+
+// STRUCTURES
+typedef struct RM_RecordPage
+{
+	int numberOfTuples;
+	RID rid; // page and slot
+	int recordSize;
+	int free;
+} RM_RecordPage;
+
+typedef struct RM_PageMgr
+{
+	int numTuples;
+	int numRecordPages;
+	int *full;
+	BM_PageHandle *ph;
+	RM_RecordPage **recordPages;
+	BM_BufferPool *bp;
+} RM_PageMgr;
+
+typedef struct RM_ScanMgr
+{
+  	int totalRecordPages;
+  	int curTuple;
+	int scanCount;
+  	int curPage;
+  	Expr *condition;
+} RM_ScanMgr;
 
 // table and manager
 extern RC initRecordManager (void *mgmtData);
