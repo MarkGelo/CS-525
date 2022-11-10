@@ -31,7 +31,7 @@ typedef struct RM_PageMgr
 	BM_PageHandle *ph;
 	RM_RecordPage **recordPages;
 	BM_BufferPool *bp;
-} RM_PageDirectory;
+} RM_PageMgr;
 
 typedef struct RM_ScanMgr
 {
@@ -40,7 +40,7 @@ typedef struct RM_ScanMgr
 	int scanCount;
   	int curPage;
   	Expr *condition;
-} RM_ScanHelper;
+} RM_ScanMgr;
 
 // table and manager
 extern RC initRecordManager (void *mgmtData);
