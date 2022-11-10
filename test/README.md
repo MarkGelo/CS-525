@@ -1,15 +1,13 @@
 ## Incomplete, so can't run tests, but I finished most of the functions
 
-Didn't find the time to complete this assignment but most of the functions I have finished and should be correct. For the functions, that I didn't really implement, I just added some pseudocode of how it should work. 
-
-The only functions I didnt implement are: **FUNCTIONS ....** **FUNCTION 1**
+Didn't find the time to complete this assignment but most of the functions I have finished and should be correct. For the functions that I didn't really implement, I just added some pseudocode of how it should work. 
 
 
-**Functions I have completed**
+**Functions**
 
 **createTable**: To create table, have to create a page file and initialize it with values such as the header. The header includes the num records, num attr, keysize, datatype, typelenght, key attributes, attr names. These must fit in one page so it checks those. Then using the schema, it initializes it in the header, writes it in the page file and then closes it. Later on, when the manager opens the table then, it will initialize all those in structures for easier use.
 
-**openTable**: TODO
+**openTable**: To open the table, we make buffer pool and pagehandle, and then initialize the buffer pool, pinning the header with all the information we need. We then initialize the schema so we can add it to our tableData. To initialize the schema, we read the header with all the information already done there. To do this, we do some pointer magic, and just remember the way we added stuff to the header. Once we finish the schema, we then initialize all our structures that we will be using such as the PageMgr. the PageMgr stores the buffer pool, page handle, the records, and most importantly if there is free space, using an array. Once all of these are initialized and ready, the table is open and this function has done its job.
 
 **closeTable**: TODO
 

@@ -17,26 +17,28 @@ typedef struct RM_ScanHandle
 // STRUCTURES
 typedef struct RM_RecordPage
 {
-	int numTuples;
-	int recSize;
-	int freeSpace;
-	int pageNo;
+	int numberOfTuples;
+	RID rid; // page and slot
+	int recordSize;
+	int free;
 } RM_RecordPage;
 
-typedef struct RM_PageDirectory
+typedef struct RM_PageMgr
 {
-	int totalTuples;
+	int numTuples;
 	int numRecordPages;
-	int *pageFullArray;
-	RM_RecordPage **recPageArray;
+	int *full;
+	BM_PageHandle *ph;
+	RM_RecordPage **recordPages;
 	BM_BufferPool * bp;
 } RM_PageDirectory;
 
-typedef struct RM_ScanHelper
+typedef struct RM_ScanMgr
 {
   	int totalRecordPages;
-  	int currentTuple;
-  	int currentPage;
+  	int curTuple;
+	int scanCount;
+  	int curPage;
   	Expr *condition;
 } RM_ScanHelper;
 

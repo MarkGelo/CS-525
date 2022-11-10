@@ -104,10 +104,135 @@ RC createTable (char *name, Schema *schema){
 }
 
 RC openTable (RM_TableData *rel, char *name){
+    BM_BufferPool *bp = MAKE_POOL();
+    BM_PageHandle *ph = MAKE_PAGE_HANDLE();
+
+    if(initBufferPool(bp, name, 10, RS_LRU, NULL) != RC_OK){
+        return 33;
+    }
+
+    if(pinPage(bp, ph, 0) != RC_OK){ // pin header
+        return 33;
+    }
+
+    SM_PageHandle header = ph -> data;
+    Schema *schema = malloc(sizeof(Schema));
+    int i;
+
+    // read header and initialize schema
+    
+    /* get values using pointer magic
+    int cur_loc = header;
+    int numTuples = getTuples(cur_loc);
+    cur_loc += sizeof(char);
+
+    schema -> numAttr = getNumAttr(cur_loc);
+    cur_loc += sizeof(char);
+
+    schema -> keySize = getVal(cur_loc);
+    cur_loc += sizeof(char);
+
+    schema -> dataTypes = malloc(sizeof(char) * schema -> numAttr);
+    for(i = 0; i < schema -> numAttr; i++){
+        schema -> dataTypes[i] = getVal(cur_loc);
+        cur_loc += sizeof(char);
+    }
+
+    schema -> typeLength = malloc(sizeof(char) * schema -> numAttr);
+    for(i = 0; i < schema -> numAttr; i++){
+        schema -> typeLength[i] = getVal(cur_loc);
+        cur_loc += sizeof(char);
+    }
+
+    schema -> keyAttrs = malloc(sizeof(char) * schema -> numAttr);
+    for(i = 0; i < schema -> numAttr; i++){
+        schema -> keyAttrs[i] = getVal(cur_loc);
+        cur_loc += sizeof(char);
+    }
+
+    schema -> attrNames = malloc(sizeof(char) * schema -> numAttr);
+    for(i = 0; i < schema -> numAttr; i++){
+        schema -> attrNames[i] = getVal(cur_loc, "string");
+        cur_loc += strlen(schema -> attrNames[i]) * sizeof(char);
+    }
+
+    // finished initializing schema
+
+    rel -> schema = schema;
+    unpinPage(bp, h);
+
+    RM_PageMgr *pm = malloc(sizeof(RM_PageMgr));
+    // init page mgr with these
+
+    int numTuples;
+	int numRecordPages;
+	int *pageFullArray;
+	BM_PageHandle *ph;
+	RM_RecordPage **recordPages;
+	BM_BufferPool * bp;
+
+    // make array for records
+    for(i = 0; i < numRecords; i++){
+        pinPage(bp, ph, loc);
+
+        // init records
+        recordPages[loc] -> numTuples = tuples
+            
+            int numberOfTuples;
+            RID rid; // page and slot
+            int recordSize;
+            int free;
+
+        if freeSpace(i){
+            full[i] = 0
+        }else{
+            full[i] = 1
+        }
+    }
+
+    // finish up page mgr
+
+    pm -> numTuples = tuples;
+    pm -> ph = ph;
+    pm -> bp = bp
+        int numTuples;
+        int numRecordPages;
+        int *full;
+        BM_PageHandle *ph;
+        RM_RecordPage **recordPages;
+        BM_BufferPool * bp;
+    */
+
     return RC_OK;
 }
 
 RC closeTable (RM_TableData *rel){
+    // if closing table, have to write to make sure nothing is lost
+    RM_PageMgr *pm = rel -> mgmtData;
+
+    forcePage(pm -> bp, 0);
+    shutdownBufferPool(pm -> bp);
+
+    // free the records
+    /*
+    int i;
+    for(i = 0; i < pm -> numRecordPages; i++){
+        free(pm -> recordPages[i])
+    }
+
+    free(pm -> recordPages)
+
+    // free everything else
+
+    free(full) // this is the array used to find free space
+    free(ph)
+    free(bp)
+
+    also free schema
+
+    freeSchema(rel -> schema)
+    */
+
     return RC_OK;
 }
 
@@ -148,6 +273,7 @@ RC next (RM_ScanHandle *scan, Record *record){
 RC closeScan (RM_ScanHandle *scan){
     // close scan so can just free scan
     free(scan -> mgmtData);
+    free(scan);
 
     return RC_OK;
 }
