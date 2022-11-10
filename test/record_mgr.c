@@ -322,5 +322,5 @@ RC setAttr (Record *record, Schema *schema, int attrNum, Value *value){
         *loc = value -> v.boolV;
     }
 
-    return RC_OK
+    return RC_OK;
 }
